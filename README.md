@@ -5,11 +5,28 @@
 [![License](https://img.shields.io/badge/license-SSAL%201.0-blue)](LICENSE)
 [![Patent pending](https://img.shields.io/badge/patent-pending-6f42c1)](PATENT-NOTICE.md)
 
+<p align="center">
+  <img src="https://img.shields.io/badge/event--streaming-core-blue" alt="Event Streaming">
+  <img src="https://img.shields.io/badge/stream--processing-core-blue" alt="Stream Processing">
+  <img src="https://img.shields.io/badge/data--pipeline-core-blue" alt="Data Pipeline">
+  <img src="https://img.shields.io/badge/java-21-orange" alt="Java 21">
+  <img src="https://img.shields.io/badge/jvm-runtime-orange" alt="JVM Runtime">
+  <img src="https://img.shields.io/badge/kafka-integration-black" alt="Kafka">
+  <img src="https://img.shields.io/badge/apache--pulsar-integration-blue" alt="Apache Pulsar">
+  <img src="https://img.shields.io/badge/mongodb-sink-green" alt="MongoDB">
+  <img src="https://img.shields.io/badge/delta--lake-sink-blue" alt="Delta Lake">
+  <img src="https://img.shields.io/badge/snowflake-sink-lightgrey" alt="Snowflake">
+  <img src="https://img.shields.io/badge/policy--as--code-supported-purple" alt="Policy as Code">
+  <img src="https://img.shields.io/badge/open--policy--agent-supported-purple" alt="Open Policy Agent">
+  <img src="https://img.shields.io/badge/dlq-routing-red" alt="DLQ">
+  <img src="https://img.shields.io/badge/benchmarking-reproducible-success" alt="Benchmarking">
+</p>
+
 Architected by [Steven Lopez](https://www.linkedin.com/in/steve-lopez-b9941/).
 
 StreamKernel is a source-available event pipeline runtime for teams that need policy, transformation, caching, DLQ routing, and multi-destination delivery inside one fast, auditable JVM process.
 
-The category is not "another Kafka client" or "a smaller Spark." StreamKernel sits between event transport and analytical platforms: a programmable pipeline kernel for operational data movement where every extra service hop adds latency, cost, failure modes, and compliance work.
+The category is not "another Kafka client" or "a smaller Spark." StreamKernel sits between event transport, operational systems, and analytical platforms: a programmable pipeline kernel for operational data movement where every extra service hop adds latency, cost, failure modes, and compliance work.
 
 ## Buyer Pain
 
