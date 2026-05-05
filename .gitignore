@@ -1,0 +1,89 @@
+# IntelliJ Project Files
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# Gradle Build Artifacts (Generated code/jars)
+build/
+.gradle/
+.gradle-user/
+/.gradle-local*/
+*.class
+
+# Eclipse Artifacts (Just in case they regenerate)
+.classpath
+.project
+.settings/
+bin/
+
+# OS Junk
+.DS_Store
+Thumbs.db
+
+# DBeaver (Database tool config - optional, usually good to ignore)
+.dbeaver/
+
+# Kafka docker build
+data/
+
+# 🔐 Secrets (never commit)
+secrets/
+*.jks
+*.p12
+*.key
+*.pem
+*.crt
+password.txt
+*_creds
+
+# Private legal and filing work product
+streamkernel-legal/
+docs/*attorney*
+docs/*filing*
+docs/*publication*
+**/*claim-chart*
+**/*claim_chart*
+
+.venv-onnx
+.quarantine
+.mlflow-model-cache/
+.streamkernel-tmp/
+benchmark-runs/*
+!benchmark-runs/tests*.csv
+# --- StreamKernel enterprise hygiene ---
+# local secrets
+/.local-secrets/
+/.secrets/
+# logs + crash artifacts
+/logs/
+/crash-artifacts/
+*.log
+*.zip
+*.gz
+*.tmp
+*.hprof
+hs_err_pid*.log
+# caches
+**/.cache/
+__pycache__/
+*.py[cod]
+*.pyc.*
+# tooling outputs (optional)
+*.bin
+
+# --- enterprise hygiene ---
+# secrets
+/secrets/
+# IDE
+/.idea/
+# logs + crash dumps
+# optional artifacts
+/artifacts/
+
+# Local binaries
+opa.exe
+
+# Local distribution bundles
+dist/

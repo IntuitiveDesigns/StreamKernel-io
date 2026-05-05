@@ -1,0 +1,2 @@
+# Preserve patent evidence bundles byte-for-byte so manifest hashes remain reproducible.
+patent-evidence/** -text -diff

@@ -1,0 +1,236 @@
+StreamKernel Source Available License (SSAL) v1.0
+Effective: April 2026
+
+Copyright (c) 2026 Steven Lopez
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+0. DEFINITIONS
+
+"StreamKernel" means the StreamKernel core runtime software,
+including the pipeline orchestrator, inference engine, metrics
+runtime, security layer, bundled sink/source/transformer
+adapters, and all associated tooling governed by this license.
+
+"You" (or "Your") means the individual or legal entity
+exercising rights under this license.
+
+"Organization" means a single legal entity, including its
+wholly-owned subsidiaries.
+
+"Internal Use" means use of StreamKernel solely to process
+Your Organization's own data for Your Organization's own
+operations, with no access to StreamKernel's functionality
+granted to any third party.
+
+"Substantially Powered By StreamKernel" means any product
+or service in which StreamKernel serves as:
+  (a) the primary stream processing or event pipeline runtime,
+  (b) the inference orchestration or AI enrichment engine, or
+  (c) a core execution component without which the product or
+      service could not deliver its primary functionality.
+The test is functional dependency, not code volume.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. PURPOSE
+
+StreamKernel is provided as source-available software to
+encourage adoption, evaluation, and internal use while
+preserving the author's ability to monetize commercial
+distribution and service offerings.
+
+This license permits broad free use, including internal
+production use at any scale, while requiring a commercial
+license for external distribution and service offerings.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+2. PERMITTED USE (NO COMMERCIAL LICENSE REQUIRED)
+
+You may, without a commercial license:
+
+  (a) Use StreamKernel for development, evaluation, testing,
+      proof-of-concept, and personal or educational purposes.
+
+  (b) Use StreamKernel in Internal Use production deployments
+      that process Your Organization's own data for Your
+      Organization's own operations, at any scale.
+
+  (c) Modify StreamKernel internally for Your own use.
+
+  (d) Build custom plugins, connectors, transformers, sources,
+      sinks, and extensions using the StreamKernel SPI.
+
+  (e) Use StreamKernel in research, academic, or non-commercial
+      open source projects.
+
+  (f) Provide professional services, consulting, and
+      implementation work to clients using StreamKernel,
+      provided StreamKernel is not itself distributed or
+      offered as a service to those clients.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+3. CUSTOM PLUGIN OWNERSHIP
+
+Plugins, connectors, transformers, sources, sinks, or
+extensions created by You using the StreamKernel SPI are
+Your property. This license imposes no restrictions on
+Your custom plugins, except where the StreamKernel core
+runtime is redistributed alongside them.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+4. COMMERCIAL LICENSE REQUIRED
+
+A commercial license is required to:
+
+  (a) Offer StreamKernel, or any product or service
+      Substantially Powered By StreamKernel, to third
+      parties — whether hosted, managed, embedded, or
+      delivered as SaaS.
+
+  (b) Distribute StreamKernel, or any product incorporating
+      StreamKernel, to external customers or users outside
+      Your Organization.
+
+  (c) Embed StreamKernel in a commercial product that is
+      sold, licensed, or otherwise transferred to third
+      parties.
+
+  (d) Resell, sublicense, or relicense StreamKernel or any
+      derivative of the StreamKernel core runtime.
+
+  (e) Offer StreamKernel-as-a-Service, managed StreamKernel
+      infrastructure, or hosted StreamKernel pipelines to
+      paying or non-paying third parties.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+5. WHAT IS NOT RESTRICTED
+
+For the avoidance of doubt, the following do not require
+a commercial license:
+
+  (a) Internal production use, including processing real
+      business data in production systems, at any scale,
+      for Your Organization's own operations.
+
+  (b) Third-party consultants, system integrators, or
+      contractors using StreamKernel to deliver
+      implementation services to clients, provided
+      StreamKernel is not itself distributed or offered
+      as a service to those clients.
+
+  (c) Building and distributing custom plugins that implement
+      the StreamKernel SPI, provided the StreamKernel core
+      runtime is not redistributed as part of that
+      distribution.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+6. REDISTRIBUTION
+
+Redistribution of StreamKernel source or binaries is
+permitted only if:
+
+  (a) This license is included in full and unmodified.
+  (b) All copyright and attribution notices are preserved.
+  (c) No license terms are removed or obscured.
+  (d) The redistribution does not constitute a use requiring
+      a commercial license under Section 4.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+7. PATENT RIGHTS
+
+No patent rights are granted under this license. Use of
+StreamKernel does not grant any license, express or implied,
+to any patents held by Steven Lopez or StreamKernel.
+
+Commercial license agreements may include explicit patent
+grants as negotiated terms.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+8. TRADEMARKS
+
+This license does not grant permission to use the
+"StreamKernel" name, logo, or trademarks. Use of the
+StreamKernel name and logo is governed by the StreamKernel
+Trademark Policy available at https://streamkernel.io/trademark.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+9. COMMERCIAL LICENSING
+
+Commercial licenses are available for:
+
+  - Internal enterprise production use requiring contractual
+    SLA and support
+  - OEM embedding in commercial products
+  - Managed service and hosted platform deployments
+  - Enterprise redistribution
+  - Government and defense deployments
+
+Contact: licensing@streamkernel.io
+Website: https://streamkernel.io/licensing
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+10. VERSIONING
+
+The license terms applicable to a specific release of
+StreamKernel are fixed at the time of that release. Updated
+license terms apply only to subsequent releases. Your rights
+under the version of this license that governed a release
+you obtained are not retroactively modified by later license
+versions.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+11. DISCLAIMER OF WARRANTIES
+
+STREAMKERNEL IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
+KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+PURPOSE, AND NON-INFRINGEMENT. THE AUTHOR SHALL NOT BE
+LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY ARISING
+FROM USE OF THIS SOFTWARE.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+12. LIMITATION OF LIABILITY
+
+IN NO EVENT SHALL STEVEN LOPEZ BE LIABLE FOR ANY INDIRECT,
+INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
+TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY
+WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+THE POSSIBILITY OF SUCH DAMAGE.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+13. GOVERNING LAW
+
+This license is governed by the laws of the State of
+Florida, without regard to conflict of law principles.
+Any disputes arising under this license shall be resolved
+in the courts of Orange County, Florida.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+14. ACCEPTANCE
+
+Use of StreamKernel constitutes acceptance of this license.
+If you do not agree to these terms, you may not use, copy,
+modify, or distribute StreamKernel.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+StreamKernel · Copyright (c) 2026 Steven Lopez
+https://streamkernel.io · licensing@streamkernel.io

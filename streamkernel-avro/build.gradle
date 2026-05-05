@@ -1,0 +1,38 @@
+/*
+ * Copyright (c) 2026 Steven Lopez
+ * SPDX-License-Identifier: LicenseRef-SSAL-1.0
+ *
+ * Licensed under the StreamKernel Source Available License (SSAL) v1.0.
+ * See the LICENSE file in the project root for the full license text.
+ */
+
+plugins {
+    id 'java-library'
+    id 'com.github.davidmc24.gradle.plugin.avro' version '1.9.1'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    api 'org.apache.avro:avro:1.11.3'
+}
+
+sourceSets {
+    main {
+        resources {
+            // Keep empty unless you need runtime resources
+        }
+    }
+}
+
+// IMPORTANT: avro-gradle-plugin expects schemas under src/main/avro by default.
+// Your files should be here:
+// streamkernel-avro/src/main/avro/*.avsc

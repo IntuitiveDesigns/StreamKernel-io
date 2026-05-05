@@ -1,0 +1,136 @@
+/*
+ * Copyright (c) 2026 Steven Lopez
+ * SPDX-License-Identifier: LicenseRef-SSAL-1.0
+ *
+ * Licensed under the StreamKernel Source Available License (SSAL) v1.0.
+ * See the LICENSE file in the project root for the full license text.
+ */
+
+// streamkernel-app/build.gradle
+
+plugins {
+    id 'java-library'
+    id 'application'
+    id 'com.github.johnrengelman.shadow'
+}
+
+application {
+    mainClass = 'com.intuitivedesigns.streamkernel.StreamKernel'
+}
+
+dependencies {
+    implementation project(':streamkernel-api')
+    implementation project(":streamkernel-core")
+    implementation project(":streamkernel-plugins:http-embedding-stub")
+    implementation project(":streamkernel-spi")
+    implementation project(":streamkernel-metrics:metrics-api")
+    implementation "com.fasterxml.jackson.core:jackson-databind:2.17.2"
+
+    // Built-in plugins
+    implementation project(":streamkernel-metrics:metrics-prometheus")
+    implementation project(":streamkernel-plugins:sink-kafka")
+    // Snowflake remains intentionally out of the default lean app jar.
+    // Delta is bundled for local lakehouse profiles.
+    implementation project(":streamkernel-plugins:source-synthetic")
+    implementation project(":streamkernel-plugins:transform-etl")
+    implementation project(':streamkernel-plugins:transformer-string-to-wireevent')
+    implementation project(":streamkernel-plugins:cache-local")
+    implementation project(":streamkernel-plugins:cache-noop")
+    implementation project(":streamkernel-plugins:sink-mongo-vector")
+    implementation project(':streamkernel-plugins:sink-mongo-insert')
+    implementation project(':streamkernel-plugins:sink-delta')
+
+    runtimeOnly project(":streamkernel-plugins:security-opa")
+    runtimeOnly "ch.qos.logback:logback-classic:1.5.12"
+
+    testImplementation "org.junit.jupiter:junit-jupiter:5.10.2"
+}
+
+// ==============================================================================
+// Cross-platform config injection for :run / :runCpu / :runGpu
+// ==============================================================================
+def resolveSkConfigPath = {
+    def cfg = project.findProperty("skConfigPath")
+    if (cfg == null) cfg = System.getProperty("sk.config.path")
+    if (cfg == null) cfg = System.getenv("SK_CONFIG_PATH")
+
+    cfg = (cfg == null) ? null : cfg.toString().trim()
+
+    if (cfg != null && cfg.length() >= 2) {
+        def first = cfg.charAt(0)
+        def last  = cfg.charAt(cfg.length() - 1)
+        if ((first == '"' && last == '"') || (first == '\'' && last == '\'')) {
+            cfg = cfg.substring(1, cfg.length() - 1).trim()
+        }
+    }
+
+    if (cfg == null || cfg.isEmpty()) {
+        throw new GradleException(
+                "No configuration path provided.\n" +
+                        "Use one of:\n" +
+                        "  -PskConfigPath=/path/to/profile.properties\n" +
+                        "  -Dsk.config.path=/path/to/profile.properties\n" +
+                        "  SK_CONFIG_PATH=/path/to/profile.properties"
+        )
+    }
+
+    return cfg
+}
+
+def configureSkJavaExec = { JavaExec t ->
+    t.doFirst {
+        def cfg = resolveSkConfigPath()
+        t.systemProperty "sk.config.path", cfg
+        println "Starting StreamKernel with sk.config.path=" + cfg
+    }
+}
+
+// ==============================================================================
+// Run tasks
+// ==============================================================================
+
+tasks.named("run", JavaExec).configure { JavaExec t ->
+    configureSkJavaExec(t)
+}
+
+// ==============================================================================
+// Shadow JARs
+// ==============================================================================
+
+def applyLeanShadowExcludes = { task ->
+    task.exclude(
+            // AWS SDK codegen metadata is not needed at runtime and dominates jar size.
+            "models/**-intermediate.json",
+
+            // Keep only Windows x64 tokenizer/Cyclone/Zstd natives in this jar.
+            "native/lib/linux*/**",
+            "native/lib/osx*/**",
+            "rust/linux*/**",
+            "rust/macOS/**",
+            "linux/**",
+            "darwin/**",
+            "freebsd/**",
+            "win/x86/**"
+    )
+}
+
+// CPU shadow JAR (default — produced by :shadowJar and :build)
+//
+// BUG FIX: the original task was missing `from sourceSets.main.output`.
+// Without it, Shadow only bundles dependency JARs and omits the project's
+// own compiled classes entirely — which is why StreamKernel.class was never
+// present in the all.jar despite a successful build.
+shadowJar {
+    archiveClassifier.set('all')
+    zip64 true
+    from sourceSets.main.output          // ← THE FIX: include our own classes
+    mergeServiceFiles()
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    applyLeanShadowExcludes(delegate)
+
+    manifest {
+        attributes 'Main-Class': application.mainClass.get()
+    }
+}
+
+tasks.build.dependsOn shadowJar

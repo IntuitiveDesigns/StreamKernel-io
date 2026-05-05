@@ -1,0 +1,32 @@
+/*
+ * Copyright (c) 2026 Steven Lopez
+ * SPDX-License-Identifier: LicenseRef-SSAL-1.0
+ *
+ * Licensed under the StreamKernel Source Available License (SSAL) v1.0.
+ * See the LICENSE file in the project root for the full license text.
+ */
+
+plugins { id 'java-library' }
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+dependencies {
+    // Core contracts + SPI
+    api project(":streamkernel-api")
+    api project(":streamkernel-spi")
+    api project(":streamkernel-metrics:metrics-api")
+
+    // If your transformer uses PipelinePayload, TransformerIntrospection, etc.
+    implementation project(":streamkernel-core")
+
+    // Logging (implementation only; app supplies runtime binding)
+    implementation "org.slf4j:slf4j-api:2.0.16"
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.release = 21
+}

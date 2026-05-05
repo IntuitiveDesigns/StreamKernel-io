@@ -1,0 +1,102 @@
+# StreamKernel alert rules (local/dev defaults)
+# Place at: ./config/prometheus/streamkernel_alerts.yml
+#
+# Tune 'for:' durations once you move from local testing to long-running envs.
+
+groups:
+  - name: streamkernel.runtime
+    rules:
+      - alert: StreamKernelTargetDown
+        expr: up{job="streamkernel"} == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "StreamKernel metrics scrape is DOWN"
+          description: "Prometheus cannot scrape StreamKernel at host.docker.internal:8080 (/metrics). Check StreamKernel process, bind address, and firewall."
+
+      # Warning: Stall detection via load vs progress
+      - alert: StreamKernelPipelineStalled
+        expr: rate(streamkernel_pipeline_processed_total[1m]) == 0 and streamkernel_pipeline_load_percent > 0
+        for: 60s
+        labels:
+          severity: warning
+        annotations:
+          summary: "StreamKernel pipeline appears stalled"
+          description: "Processed rate is 0 for 1m while load% suggests work should be happening. Check source starvation, sink backpressure, or transformer latency."
+
+      - alert: StreamKernelPipelineBackpressureHigh
+        expr: streamkernel_pipeline_inflight_records > 0 and streamkernel_pipeline_load_percent >= 95
+        for: 60s
+        labels:
+          severity: warning
+        annotations:
+          summary: "StreamKernel backpressure high"
+          description: "Pipeline inflight records present and load% >= 95 for 1m. Consider reducing batch size, increasing parallelism, or investigating sink throughput."
+
+      # Warning: Event-based capture of failures
+      - alert: StreamKernelDroppedRecords
+        expr: increase(streamkernel_pipeline_dropped_total[5m]) > 0
+        for: 10s
+        labels:
+          severity: warning
+        annotations:
+          summary: "StreamKernel is dropping records"
+          description: "Dropped records increased over the last 5m. Investigate input policies, transformer rejects, or backpressure limits."
+
+      - alert: StreamKernelDLQRouted
+        expr: increase(streamkernel_pipeline_dlq_total[5m]) > 0
+        for: 10s
+        labels:
+          severity: warning
+        annotations:
+          summary: "StreamKernel is routing records to DLQ"
+          description: "DLQ routed count increased over the last 5m. Check sink failures, serialization errors, or security denials."
+
+      - alert: StreamKernelSourceErrors
+        expr: increase(streamkernel_pipeline_source_errors_total[5m]) > 0
+        for: 10s
+        labels:
+          severity: warning
+        annotations:
+          summary: "StreamKernel source errors detected"
+          description: "Source errors increased over the last 5m."
+
+      # Warning: Proactive resource monitoring
+      - alert: StreamKernelJVMHeapHigh
+        expr: streamkernel_jvm_heap_used_mb > 0 and streamkernel_jvm_heap_used_mb > 0.85 * 4096
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "StreamKernel JVM heap usage high"
+          description: "Heap used is > ~85% of a 4GiB baseline. If your Xmx differs, tune this rule or expose max heap metric."
+
+  - name: exporters
+    rules:
+      - alert: KafkaExporterDown
+        expr: up{job="kafka-exporter"} == 0
+        for: 60s
+        labels:
+          severity: warning
+        annotations:
+          summary: "Kafka exporter scrape DOWN"
+          description: "Prometheus can't scrape kafka-exporter:9308. Check container health and network."
+
+      - alert: NodeExporterDown
+        expr: up{job="node-exporter"} == 0
+        for: 60s
+        labels:
+          severity: warning
+        annotations:
+          summary: "Node exporter scrape DOWN"
+          description: "Prometheus can't scrape node-exporter:9100. On Docker Desktop, node-exporter may require privilege/mount adjustments."
+
+      - alert: PostgresExporterDown
+        expr: up{job="postgres-exporter"} == 0
+        for: 60s
+        labels:
+          severity: info
+        annotations:
+          summary: "Postgres exporter scrape DOWN"
+          description: "Expected if --profile postgres is not enabled. If postgres profile is enabled, check exporter container logs and network."

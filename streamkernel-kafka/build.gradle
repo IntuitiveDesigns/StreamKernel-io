@@ -1,0 +1,47 @@
+/*
+ * Copyright (c) 2026 Steven Lopez
+ * SPDX-License-Identifier: LicenseRef-SSAL-1.0
+ *
+ * Licensed under the StreamKernel Source Available License (SSAL) v1.0.
+ * See the LICENSE file in the project root for the full license text.
+ */
+
+plugins {
+    id 'java-library'
+}
+
+repositories {
+    mavenCentral()
+    maven { url "https://packages.confluent.io/maven/" }
+}
+
+dependencies {
+    // Core Modules
+    implementation project(':streamkernel-spi')
+    implementation project(':streamkernel-core')
+
+    // Kafka (Confluent Version)
+    implementation 'org.apache.kafka:kafka-clients:7.6.1-ccs'
+
+    // Utilities
+    implementation 'org.slf4j:slf4j-api:2.0.9'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
+}
+
+tasks.register('producerBurnTest', JavaExec) {
+    group = 'benchmark'
+    description = 'Runs ProducerBurnTest'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass.set('com.intuitivedesigns.streamkernel.kafka.ProducerBurnTest')
+
+    // Optional: pass JVM args or system props here
+    // jvmArgs '-Xms2g', '-Xmx2g'
+    // systemProperty 'bench.topic', 'bench-topic'
+}
+
+tasks.register('sourceBurnTest', JavaExec) {
+    group = 'benchmark'
+    description = 'Runs SourceBurnTest'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass.set('com.intuitivedesigns.streamkernel.kafka.SourceBurnTest')
+}

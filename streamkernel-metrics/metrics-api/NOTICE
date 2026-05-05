@@ -1,0 +1,10 @@
+StreamKernel SDK Notice
+
+This module is part of the StreamKernel SDK and is licensed under
+the Apache License, Version 2.0.
+
+Custom plugins and extensions built against the StreamKernel SDK
+remain the property of their authors.
+
+The StreamKernel runtime and first-party modules are governed
+separately by the StreamKernel Source Available License (SSAL) v1.0.

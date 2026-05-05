@@ -1,0 +1,44 @@
+<!--
+ Copyright (c) 2026 Steven Lopez
+ SPDX-License-Identifier: LicenseRef-SSAL-1.0
+
+ Licensed under the StreamKernel Source Available License (SSAL) v1.0.
+ See the LICENSE file in the project root for the full license text.
+-->
+
+<configuration>
+
+    <property name="LOG_DIR" value="${LOG_DIR:-${user.dir}/logs}"/>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_DIR}/streamkernel.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_DIR}/streamkernel.%d{yyyy-MM-dd}.log.gz</fileNamePattern>
+            <maxHistory>14</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Keep demo logs focused on actionable issues. These libraries emit
+         benign startup warnings on Windows/CPU-only laptops. -->
+    <logger name="org.apache.hadoop.util.Shell" level="ERROR"/>
+    <logger name="org.apache.hadoop.util.NativeCodeLoader" level="ERROR"/>
+    <logger name="org.apache.hadoop.metrics2.impl.MetricsConfig" level="ERROR"/>
+    <logger name="org.apache.hadoop.fs.s3a.S3AInputStream" level="WARN"/>
+    <logger name="io.delta.kernel.defaults.engine.logging.LoggingMetricsReporter" level="WARN"/>
+    <logger name="io.delta.kernel.internal.snapshot.SnapshotManager" level="ERROR"/>
+    <logger name="io.delta.kernel.internal.checkpoints.Checkpointer" level="WARN"/>
+    <logger name="io.delta.kernel.internal.DeltaLogActionUtils" level="WARN"/>
+
+    <root level="INFO">
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="FILE"/>
+    </root>
+</configuration>

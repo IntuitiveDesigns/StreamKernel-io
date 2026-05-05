@@ -1,0 +1,24 @@
+/*
+ * Copyright (c) 2026 Steven Lopez
+ * SPDX-License-Identifier: LicenseRef-SSAL-1.0
+ *
+ * Licensed under the StreamKernel Source Available License (SSAL) v1.0.
+ * See the LICENSE file in the project root for the full license text.
+ */
+
+plugins {
+    id 'java'
+}
+
+dependencies {
+    // 1. Core Architecture
+    implementation project(':streamkernel-spi')
+    implementation project(':streamkernel-core')
+    implementation project(':streamkernel-metrics:metrics-api')
+
+    // 2. JSON Processing (Required for OPA communication)
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.16.1'
+
+    // 3. Logging
+    implementation 'org.slf4j:slf4j-api:2.0.12'
+}

@@ -1,0 +1,34 @@
+/*
+ * Copyright (c) 2026 Steven Lopez
+ * SPDX-License-Identifier: LicenseRef-SSAL-1.0
+ *
+ * Licensed under the StreamKernel Source Available License (SSAL) v1.0.
+ * See the LICENSE file in the project root for the full license text.
+ */
+
+plugins {
+    id 'java-library'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation project(':streamkernel-api')
+    implementation project(':streamkernel-spi')
+    implementation project(':streamkernel-core')
+    implementation project(':streamkernel-avro')
+    implementation project(':streamkernel-metrics:metrics-api')
+
+    // If you use MongoDB driver here, keep whichever you already had; add if missing:
+    implementation 'org.mongodb:mongodb-driver-sync:5.1.2'
+
+    testImplementation "org.junit.jupiter:junit-jupiter:5.10.2"
+}

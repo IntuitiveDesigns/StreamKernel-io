@@ -1,0 +1,46 @@
+/*
+ * Copyright (c) 2026 Steven Lopez
+ * SPDX-License-Identifier: LicenseRef-SSAL-1.0
+ *
+ * Licensed under the StreamKernel Source Available License (SSAL) v1.0.
+ * See the LICENSE file in the project root for the full license text.
+ */
+
+apply plugin: 'java-library'
+
+dependencies {
+    
+    implementation project(':streamkernel-api')
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
+    implementation 'org.apache.kafka:kafka-clients:3.7.0'
+    implementation 'io.micrometer:micrometer-core:1.13.3'
+    implementation 'org.slf4j:slf4j-api:2.0.13'
+    implementation 'ch.qos.logback:logback-classic:1.5.6'
+    implementation "com.google.protobuf:protobuf-java:3.25.3"
+    implementation "com.google.protobuf:protobuf-java-util:3.25.3"
+    implementation project(':streamkernel-avro')
+    implementation "org.hdrhistogram:HdrHistogram:2.2.2"
+
+    api project(":streamkernel-spi")
+    api "org.slf4j:slf4j-api:2.0.13"
+    api "io.micrometer:micrometer-core:1.13.6"
+
+    testImplementation "org.junit.jupiter:junit-jupiter:5.10.2"
+    testRuntimeOnly project(":streamkernel-plugins:source-synthetic")
+    testRuntimeOnly project(":streamkernel-plugins:transform-etl")
+    testRuntimeOnly project(":streamkernel-plugins:cache-noop")
+    testRuntimeOnly project(":streamkernel-plugins:http-embedding-stub")
+    testRuntimeOnly project(":streamkernel-plugins:transformer-string-to-wireevent")
+}
+
+sourceSets {
+  main {
+    java {
+      // Core should remain adapter-free. Kafka adapters live in :streamkernel-kafka.
+      exclude 'com/intuitivedesigns/streamkernel/kafka/**'
+    }
+  }
+}
+
+
+

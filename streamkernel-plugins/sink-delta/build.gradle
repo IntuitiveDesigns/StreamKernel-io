@@ -1,0 +1,50 @@
+/*
+ * Copyright (c) 2026 Steven Lopez
+ * SPDX-License-Identifier: LicenseRef-SSAL-1.0
+ *
+ * Licensed under the StreamKernel Source Available License (SSAL) v1.0.
+ * See the LICENSE file in the project root for the full license text.
+ */
+
+plugins {
+    id 'java-library'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation project(':streamkernel-api')
+    implementation project(':streamkernel-avro')
+    implementation project(':streamkernel-core')
+    implementation project(':streamkernel-spi')
+    implementation project(':streamkernel-metrics:metrics-api')
+
+    implementation "io.delta:delta-kernel-api:4.0.0"
+    implementation("io.delta:delta-kernel-defaults:4.0.0") {
+        exclude group: "org.apache.hadoop", module: "hadoop-client-runtime"
+    }
+    compileOnly "org.apache.hadoop:hadoop-common:3.3.6"
+    compileOnly "org.apache.hadoop:hadoop-client-runtime:3.3.6"
+    compileOnly "org.apache.hadoop:hadoop-aws:3.3.6"
+    compileOnly "com.amazonaws:aws-java-sdk-bundle:1.12.720"
+
+    // Required by java -jar demo runs that write s3a:// Delta tables to MinIO.
+    // Keep Hadoop runtime aligned with hadoop-aws; 3.4 defaults use duration
+    // strings that hadoop-aws 3.3.x parses as longs during S3A initialization.
+    runtimeOnly "org.apache.hadoop:hadoop-client-runtime:3.3.6"
+    runtimeOnly "org.apache.hadoop:hadoop-aws:3.3.6"
+    runtimeOnly "com.amazonaws:aws-java-sdk-bundle:1.12.720"
+
+    implementation "org.slf4j:slf4j-api:2.0.13"
+
+    testImplementation "org.junit.jupiter:junit-jupiter:5.10.2"
+    testImplementation "org.apache.hadoop:hadoop-common:3.3.6"
+}

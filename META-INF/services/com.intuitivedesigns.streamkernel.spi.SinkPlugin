@@ -1,0 +1,4 @@
+com.intuitivedesigns.streamkernel.plugins.KafkaSinkPlugin
+com.intuitivedesigns.streamkernel.plugins.DevNullSinkPlugin
+com.intuitivedesigns.streamkernel.plugins.MongoVectorSinkPlugin
+com.intuitivedesigns.streamkernel.plugins.MongoInsertSinkPlugin

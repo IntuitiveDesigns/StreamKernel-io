@@ -1,0 +1,9 @@
+{
+  "ticketId": "${ID}",
+  "customerId": "CUST-${SEQ}",
+  "summary": "${TEXT}",
+  "description": "Synthetic benchmark record seq=${SEQ}",
+  "priority": "HIGH",
+  "status": "OPEN",
+  "updatedAt": "${TS}"
+}

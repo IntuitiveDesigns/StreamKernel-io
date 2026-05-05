@@ -1,0 +1,3 @@
+LogName,ConfigPath,Minutes,KafkaTopic,KafkaPartitions,RunId,HeapGb,GcThreads,GcMode,LatencySampleMask,InflightMax,OutbatchCapacity,ExecutorMode,CacheDisabled,SinkBatchCopy
+streamkernel_synthetic_to_kafka_sink_oidc_2m,config/pipelines/streamkernel_synthetic_to_kafka_sink_oidc.properties,2,streamkernel-oidc,4,run-kafka-oidc-sink-01,4,2,G1,0,4096,64,FIXED,true,false
+streamkernel_kafka_source_oidc_devnull_2m,config/pipelines/streamkernel_kafka_source_oidc_devnull.properties,2,n/a,0,run-kafka-oidc-source-01,4,2,G1,0,4096,64,FIXED,true,false

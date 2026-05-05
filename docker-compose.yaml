@@ -1,0 +1,401 @@
+# Copyright (c) 2026 Steven Lopez
+# SPDX-License-Identifier: LicenseRef-SSAL-1.0
+#
+# Licensed under the StreamKernel Source Available License (SSAL) v1.0.
+# See the LICENSE file in the project root for the full license text.
+
+name: streamkernel-local
+
+services:
+  # =======================================================================
+  # Hugging Face Text Embeddings Inference (TEI)
+  # =======================================================================
+  tei:
+    image: ghcr.io/huggingface/text-embeddings-inference:cpu-1.8.1
+    container_name: tei
+    ulimits:
+      nofile:
+        soft: 1048576
+        hard: 1048576
+    ports:
+      - "8088:80"
+    command:
+      - "--model-id"
+      - "sentence-transformers/all-MiniLM-L6-v2"
+    environment:
+      # Only needed for gated/private models; safe to omit for public models
+      HF_TOKEN: ${HF_TOKEN:-}
+    volumes:
+      # Persist model cache between runs (optional but recommended)
+      - ./models/.cache/tei:/data
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -fsS http://localhost:80/health || exit 1" ]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    networks: [streamkernel]
+
+  # =======================================================================
+  # OPEN POLICY AGENT (OPA) — Authorization
+  # =======================================================================
+  opa:
+    image: openpolicyagent/opa:latest-debug
+    container_name: opa
+    ports:
+      - "8181:8181"
+    volumes:
+      - ./policies:/policies:ro
+    command:
+      - "run"
+      - "--server"
+      - "--addr=0.0.0.0:8181"
+      - "--log-level=info"
+      - "/policies"
+    healthcheck:
+      # NOTE: uses wget; if missing, replace with curl -fsS ...
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8181/health >/dev/null 2>&1 || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 5s
+    restart: unless-stopped
+    networks: [streamkernel]
+
+  # =======================================================================
+  # KEYCLOAK — Local OIDC issuer for Kafka SASL/OAUTHBEARER tests
+  # =======================================================================
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    container_name: keycloak
+    profiles: ["oidc"]
+    ports:
+      - "8085:8080"
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_HTTP_ENABLED: "true"
+      KC_HEALTH_ENABLED: "true"
+      KC_HOSTNAME_STRICT: "false"
+    command:
+      - "start-dev"
+      - "--import-realm"
+    volumes:
+      - ./tools/keycloak:/opt/keycloak/data/import:ro
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "/opt/keycloak/bin/kcadm.sh config credentials --server http://localhost:8080 --realm master --user $$KEYCLOAK_ADMIN --password $$KEYCLOAK_ADMIN_PASSWORD >/dev/null 2>&1 || exit 1"
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 30
+      start_period: 30s
+    restart: unless-stopped
+    networks: [streamkernel]
+
+  # =======================================================================
+  # KAFKA (KRaft, single-node) — Host + Container access, plus Internal mTLS
+  #
+  # Host access:
+  #   PLAINTEXT_HOST -> localhost:9092
+  #   SSL_HOST       -> localhost:9093  (mTLS)
+  #   OAUTH_HOST     -> localhost:9095  (OIDC / SASL_OAUTHBEARER, opt-in via
+  #                                      config/kafka/oidc.compose.env)
+  #
+  # Container access:
+  #   PLAINTEXT      -> broker:29092
+  #   SSL            -> broker:29094    (mTLS)
+  # =======================================================================
+  broker:
+    image: confluentinc/cp-kafka:7.6.1
+    container_name: broker
+    hostname: broker
+    ports:
+      - "9092:9092"
+      - "9093:9093"
+      - "9095:9095"
+      # Optional: exposing internal SSL can be useful for debugging from host
+      - "29094:29094"
+    volumes:
+      - kafka-data-volume:/var/lib/kafka/data
+      - ./secrets:/etc/kafka/secrets:ro
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: "1@broker:29093"
+
+      KAFKA_LISTENERS: "${KAFKA_LISTENERS:-PLAINTEXT://0.0.0.0:29092,CONTROLLER://0.0.0.0:29093,PLAINTEXT_HOST://0.0.0.0:9092,SSL_HOST://0.0.0.0:9093,SSL://0.0.0.0:29094}"
+
+      KAFKA_ADVERTISED_LISTENERS: "${KAFKA_ADVERTISED_LISTENERS:-PLAINTEXT://broker:29092,PLAINTEXT_HOST://localhost:9092,SSL://broker:29094,SSL_HOST://localhost:9093}"
+
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "${KAFKA_LISTENER_SECURITY_PROTOCOL_MAP:-CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,SSL:SSL,SSL_HOST:SSL}"
+
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+
+      CLUSTER_ID: "MkU3OEVBNTcwNTJENDM2Qk"
+
+      # --- PERFORMANCE TUNING ---
+      KAFKA_NUM_NETWORK_THREADS: 8
+      KAFKA_NUM_IO_THREADS: 8
+      KAFKA_LOG_SEGMENT_BYTES: 1073741824
+      KAFKA_LOG_RETENTION_HOURS: 8
+      KAFKA_LOG_RETENTION_BYTES: 536870912000
+      KAFKA_NUM_PARTITIONS: 12
+      KAFKA_MESSAGE_MAX_BYTES: 10485760
+      KAFKA_SOCKET_REQUEST_MAX_BYTES: 104857600
+
+      # --- DURABILITY TUNING (single-node dev) ---
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_NUM_REPLICA_FETCHERS: 4
+
+      # --- SECURITY (OIDC / SASL_OAUTHBEARER) ---
+      KAFKA_SASL_ENABLED_MECHANISMS: OAUTHBEARER
+      KAFKA_SASL_OAUTHBEARER_EXPECTED_AUDIENCE: account
+      # Confluent's env mapper uses "__" to preserve the underscore in listener name OAUTH_HOST.
+      KAFKA_LISTENER_NAME_OAUTH__HOST_SASL_ENABLED_MECHANISMS: OAUTHBEARER
+      KAFKA_LISTENER_NAME_OAUTH__HOST_OAUTHBEARER_SASL_JAAS_CONFIG: >-
+        org.apache.kafka.common.security.oauthbearer.OAuthBearerLoginModule required;
+      KAFKA_LISTENER_NAME_OAUTH__HOST_OAUTHBEARER_SASL_SERVER_CALLBACK_HANDLER_CLASS: org.apache.kafka.common.security.oauthbearer.OAuthBearerValidatorCallbackHandler
+      KAFKA_LISTENER_NAME_OAUTH__HOST_OAUTHBEARER_SASL_OAUTHBEARER_JWKS_ENDPOINT_URL: http://keycloak:8080/realms/streamkernel/protocol/openid-connect/certs
+      KAFKA_LISTENER_NAME_OAUTH__HOST_OAUTHBEARER_SASL_OAUTHBEARER_EXPECTED_AUDIENCE: account
+      KAFKA_OPTS: "${KAFKA_OPTS:-}"
+
+      # --- SECURITY (mTLS) ---
+      KAFKA_SSL_KEYSTORE_CREDENTIALS: keystore_creds
+      KAFKA_SSL_KEY_CREDENTIALS: key_creds
+      KAFKA_SSL_TRUSTSTORE_CREDENTIALS: truststore_creds
+      KAFKA_SSL_KEYSTORE_FILENAME: kafka.server.keystore.p12
+      KAFKA_SSL_TRUSTSTORE_FILENAME: kafka.truststore.p12
+      KAFKA_SSL_KEYSTORE_LOCATION: /etc/kafka/secrets/kafka.server.keystore.p12
+      KAFKA_SSL_TRUSTSTORE_LOCATION: /etc/kafka/secrets/kafka.truststore.p12
+      KAFKA_SSL_KEYSTORE_PASSWORD: changeit
+      KAFKA_SSL_KEY_PASSWORD: changeit
+      KAFKA_SSL_TRUSTSTORE_PASSWORD: changeit
+      KAFKA_SSL_CLIENT_AUTH: required
+      KAFKA_SSL_KEYSTORE_TYPE: PKCS12
+      KAFKA_SSL_TRUSTSTORE_TYPE: PKCS12
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-broker-api-versions --bootstrap-server localhost:9092 >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 25
+      start_period: 20s
+    restart: unless-stopped
+    networks: [streamkernel]
+
+  # =======================================================================
+  # Schema Registry — enabled by default because many enterprise profiles use it
+  # Disable by running compose without it (or create a "no-sr" profile later).
+  # =======================================================================
+  schema-registry:
+    image: confluentinc/cp-schema-registry:7.6.1
+    container_name: schema-registry
+    depends_on:
+      broker:
+        condition: service_healthy
+    ports:
+      - "8081:8081"
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: "broker:29092"
+      SCHEMA_REGISTRY_LISTENERS: "http://0.0.0.0:8081"
+    healthcheck:
+      # NOTE: uses curl; if missing, replace with wget -qO- ...
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8081/subjects >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 25
+      start_period: 20s
+    restart: unless-stopped
+    networks: [streamkernel]
+
+  # =======================================================================
+  # StreamKernel runtime (Option A) — depends only on what the active profile needs
+  #
+  # Keep this "core" runtime minimal. Enable optional backends
+  # (mongo/postgres/etc.) via compose profiles when testing those connectors.
+  # =======================================================================
+  # streamkernel:
+    #   build: .
+    # container_name: streamkernel
+      # depends_on:
+      # broker:
+      # condition: service_healthy
+      # opa:
+      # condition: service_healthy
+      # schema-registry:
+    # condition: service_healthy
+      # ports:
+    # - "8080:8080"   # Prometheus metrics endpoint
+      # volumes:
+      # - ./config:/etc/streamkernel/config:ro
+    # - ./secrets:/etc/streamkernel/secrets:ro
+      # environment:
+      # Select the docker-mode profile for the pipeline you want to run.
+    # SK_CONFIG_PATH: /etc/streamkernel/config/profiles/secure-durable-mtls-opa.docker.properties
+      # healthcheck:
+      # NOTE: Requires wget in the StreamKernel image (recommended: apk add wget)
+      # test: ["CMD-SHELL", "wget -qO- http://localhost:8080/metrics >/dev/null 2>&1 || exit 1"]
+      # interval: 10s
+      # timeout: 5s
+      # retries: 30
+    # start_period: 20s
+    # restart: unless-stopped
+
+  # =======================================================================
+  # Kafka Exporter (Prometheus)
+  # =======================================================================
+  kafka-exporter:
+    image: danielqsj/kafka-exporter:latest
+    container_name: kafka-exporter
+    depends_on:
+      broker:
+        condition: service_healthy
+    command:
+      - "--kafka.server=broker:29092"
+    ports:
+      - "9308:9308"
+    restart: unless-stopped
+    networks: [streamkernel]
+
+  # =======================================================================
+  # Postgres + Exporter — Optional (enable with: --profile postgres)
+  # =======================================================================
+  postgres:
+    profiles: ["postgres"]
+    image: postgres:16
+    container_name: postgres
+    environment:
+      POSTGRES_USER: arena
+      POSTGRES_PASSWORD: arena
+      POSTGRES_DB: arena_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data-volume:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U arena -d arena_db -h localhost -p 5432 >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 25
+      start_period: 20s
+    restart: unless-stopped
+    networks: [streamkernel]
+
+  postgres-exporter:
+    profiles: ["postgres"]
+    image: prometheuscommunity/postgres-exporter:latest
+    container_name: postgres-exporter
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATA_SOURCE_NAME: "postgresql://arena:arena@postgres:5432/arena_db?sslmode=disable"
+    ports:
+      - "9187:9187"
+    restart: unless-stopped
+    networks: [streamkernel]
+
+  # =======================================================================
+  # MongoDB — Optional (enable with: --profile mongo)
+  # =======================================================================
+  mongodb:
+    profiles: ["mongo"]
+    image: mongo:7.0
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data-volume:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: support_db
+    healthcheck:
+      test: ["CMD-SHELL", "mongosh --quiet --host localhost --eval 'db.runCommand({ ping: 1 }).ok' | grep 1 >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 25
+      start_period: 20s
+    restart: unless-stopped
+    networks: [streamkernel]
+
+  # =======================================================================
+  # Apache Pulsar Standalone — Optional (enable with: --profile pulsar)
+  # =======================================================================
+  pulsar:
+    profiles: ["pulsar"]
+    image: apachepulsar/pulsar:3.3.9
+    container_name: pulsar
+    ports:
+      - "6650:6650"
+      - "8082:8080"
+    command:
+      - "bin/pulsar"
+      - "standalone"
+    volumes:
+      - pulsar-data-volume:/pulsar/data
+    healthcheck:
+      test: ["CMD-SHELL", "bin/pulsar-admin topics list public/default >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+    restart: unless-stopped
+    networks: [streamkernel]
+
+  # =======================================================================
+  # Prometheus
+  # =======================================================================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    depends_on:
+      kafka-exporter:
+        condition: service_started
+      #streamkernel:
+        #condition: service_healthy
+      # Note: postgres-exporter is optional; if profile isn't enabled, it won't exist.
+    volumes:
+      - ./config/prometheus:/etc/prometheus:ro
+    ports:
+      - "9090:9090"
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.console.libraries=/usr/share/prometheus/console_libraries"
+      - "--web.console.templates=/usr/share/prometheus/consoles"
+      - "--web.enable-lifecycle"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+    networks: [streamkernel]
+
+  # =======================================================================
+  # Node Exporter
+  # =======================================================================
+#  node-exporter:
+#     profiles: ["linux"]
+#     image: prom/node-exporter:v1.8.1
+#     container_name: node-exporter
+#     restart: unless-stopped
+#     ports:
+#       - "9100:9100"
+#     command:
+#       - "--path.rootfs=/host"
+#     pid: host
+#     volumes:
+#       - "/:/host:ro,rslave"
+#     networks: [streamkernel]
+
+volumes:
+  kafka-data-volume: {}
+  pulsar-data-volume: {}
+  postgres-data-volume: {}
+  mongo-data-volume: {}
+
+networks:
+  streamkernel:
+    driver: bridge

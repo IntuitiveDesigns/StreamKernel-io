@@ -1,0 +1,39 @@
+{
+  "realm": "streamkernel",
+  "enabled": true,
+  "displayName": "StreamKernel Local",
+  "sslRequired": "none",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": false,
+  "editUsernameAllowed": false,
+  "clients": [
+    {
+      "clientId": "streamkernel-kafka-sink",
+      "name": "StreamKernel Kafka Sink",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "streamkernel-sink-secret",
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "authorizationServicesEnabled": false,
+      "fullScopeAllowed": true
+    },
+    {
+      "clientId": "streamkernel-kafka-source",
+      "name": "StreamKernel Kafka Source",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "streamkernel-source-secret",
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "authorizationServicesEnabled": false,
+      "fullScopeAllowed": true
+    }
+  ]
+}

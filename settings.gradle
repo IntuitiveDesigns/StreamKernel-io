@@ -1,0 +1,38 @@
+/*
+ * Copyright (c) 2026 Steven Lopez
+ * SPDX-License-Identifier: LicenseRef-SSAL-1.0
+ *
+ * Licensed under the StreamKernel Source Available License (SSAL) v1.0.
+ * See the LICENSE file in the project root for the full license text.
+ */
+
+rootProject.name = 'streamkernel'
+
+include 'streamkernel-api'
+include 'streamkernel-spi'
+include 'streamkernel-core'
+include 'streamkernel-app'
+include 'streamkernel-avro'
+include 'streamkernel-kafka'
+include 'streamkernel-metrics:metrics-api'
+include 'streamkernel-metrics:metrics-noop'
+include 'streamkernel-metrics:metrics-datadog'
+include 'streamkernel-metrics:metrics-prometheus'
+
+// Plugins
+include 'streamkernel-plugins:source-synthetic'
+include 'streamkernel-plugins:sink-kafka'
+include 'streamkernel-plugins:sink-delta'
+include 'streamkernel-plugins:sink-snowflake'
+include 'streamkernel-plugins:sink-mongo-vector'
+include 'streamkernel-plugins:sink-mongo-insert'
+include 'streamkernel-plugins:sink-postgres'
+include 'streamkernel-plugins:sink-dlq-kafka'
+include 'streamkernel-plugins:transform-etl'
+include 'streamkernel-plugins:transformer-string-to-wireevent'
+include 'streamkernel-plugins:cache-local'
+include 'streamkernel-plugins:cache-redis'
+include 'streamkernel-plugins:security-opa'
+include 'streamkernel-plugins:http-embedding-stub'
+include 'streamkernel-plugins:cache-noop'
+

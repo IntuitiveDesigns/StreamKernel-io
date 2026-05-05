@@ -1,0 +1,21 @@
+/*
+ * Copyright (c) 2026 Steven Lopez
+ * SPDX-License-Identifier: LicenseRef-SSAL-1.0
+ *
+ * Licensed under the StreamKernel Source Available License (SSAL) v1.0.
+ * See the LICENSE file in the project root for the full license text.
+ */
+
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    api project(':streamkernel-spi')
+
+    implementation project(":streamkernel-metrics:metrics-api")
+    implementation "io.micrometer:micrometer-core:1.12.5"
+    implementation "io.micrometer:micrometer-registry-prometheus:1.12.5"
+
+    testImplementation "org.junit.jupiter:junit-jupiter:5.10.2"
+}

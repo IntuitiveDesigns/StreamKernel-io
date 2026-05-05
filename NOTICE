@@ -1,0 +1,30 @@
+StreamKernel
+Copyright 2026 Steven Lopez
+
+Repository licensing summary
+
+The default license for this repository is the
+StreamKernel Source Available License (SSAL) v1.0.
+See LICENSE for the full text.
+
+The following SDK modules are licensed under the
+Apache License, Version 2.0:
+  - streamkernel-api
+  - streamkernel-spi
+  - streamkernel-metrics/metrics-api
+
+Versions released through v0.1.0 were published under
+Apache License 2.0. Recipients of those releases retain
+their Apache 2.0 rights for the versions obtained.
+
+Patent notice
+
+The StreamKernel Source Available License does not grant
+patent rights. Confirmed filing details are recorded in
+PATENT-NOTICE.md.
+
+Third-party software
+
+Optional profiles may reference third-party software and
+container images governed by their own upstream licenses.
+See THIRD-PARTY-NOTICES.md.

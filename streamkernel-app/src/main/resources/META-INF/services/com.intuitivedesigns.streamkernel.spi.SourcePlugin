@@ -1,0 +1,5 @@
+com.intuitivedesigns.streamkernel.plugins.SyntheticSourcePlugin
+com.intuitivedesigns.streamkernel.plugins.KafkaSourcePlugin
+com.intuitivedesigns.streamkernel.plugins.PulsarSourcePlugin
+com.intuitivedesigns.streamkernel.plugins.RestSourcePlugin
+com.intuitivedesigns.streamkernel.plugins.SalesforceSourcePlugin

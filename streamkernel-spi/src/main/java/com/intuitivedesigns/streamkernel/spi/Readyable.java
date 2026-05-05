@@ -1,0 +1,36 @@
+/*
+ * Copyright 2026 Steven Lopez
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.intuitivedesigns.streamkernel.spi;
+
+/**
+ * Readiness contract for plugins that have non-trivial boot prerequisites
+ * (native libraries, model loads, external providers, etc).
+ *
+ * The runtime calls verifyReady() during boot to fail-fast with an actionable error.
+ */
+public interface Readyable {
+
+    /**
+     * Verify that this component is "ready" for production traffic.
+     *
+     * Expected behavior:
+     * - return normally if ready
+     * - throw IllegalStateException (or Exception) if not ready
+     */
+    void verifyReady() throws Exception;
+}
