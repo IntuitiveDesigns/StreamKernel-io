@@ -27,12 +27,27 @@ covers Pulsar, REST, Delta Lake, Snowflake, MongoDB, and DevNull plugin paths.
 The public benchmark matrix lives at:
 
 - `benchmark-runs/tests.csv`
+- `benchmark-runs/tests_lineage.csv`
+- `benchmark-runs/tests_pulsar.csv`
+- `benchmark-runs/tests_pulsar_live.csv`
+- `benchmark-runs/tests_snowflake.csv`
 
 Use it like this:
 
 ```powershell
 .\gradlew.bat --no-daemon :streamkernel-app:shadowJar
 .\test-java-runner.ps1 -MatrixFile .\benchmark-runs\tests.csv -SingleTest streamkernel_kafka_at_least_once_baseline_10m
+```
+
+Additional public use cases:
+
+```powershell
+.\test-java-runner.ps1 -MatrixFile .\benchmark-runs\tests.csv -SingleTest streamkernel_mongodb_insert_baseline_10m
+.\test-java-runner.ps1 -MatrixFile .\benchmark-runs\tests.csv -SingleTest streamkernel_delta_spark_local_5m
+.\test-java-runner.ps1 -MatrixFile .\benchmark-runs\tests_lineage.csv -SingleTest streamkernel_lineage_audit_10m
+.\test-java-runner.ps1 -MatrixFile .\benchmark-runs\tests_pulsar.csv
+.\test-java-runner.ps1 -MatrixFile .\benchmark-runs\tests_pulsar_live.csv
+.\test-java-runner.ps1 -MatrixFile .\benchmark-runs\tests_snowflake.csv
 ```
 
 ## Manual Smoke Test

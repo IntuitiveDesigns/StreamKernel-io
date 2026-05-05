@@ -1,0 +1,2 @@
+LogName,ConfigPath,Minutes,KafkaTopic,KafkaPartitions,RunId,HeapGb,GcThreads,GcMode,LatencySampleMask,InflightMax,OutbatchCapacity,ExecutorMode,CacheDisabled,SinkBatchCopy
+streamkernel_pulsar_live_kafka_10m,config/pipelines/streamkernel_pulsar_live_kafka.properties,10,streamkernel-pulsar-live-out,12,run-pulsar-live-01,6,3,G1,127,50000,128,FIXED,true,false

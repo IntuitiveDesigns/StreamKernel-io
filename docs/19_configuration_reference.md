@@ -44,6 +44,7 @@ There are two configuration layers:
 | `transform.string_to_wireevent.trim` | Trims input text. |
 | `transform.string_to_wireevent.default.key` | Default record key. |
 | `transform.http.url` | HTTP transformer endpoint. |
+| `transform.deterministic_enrichment.dimension` | Public deterministic vector dimension for Delta/Snowflake demos. |
 
 ## Sinks
 
@@ -61,6 +62,9 @@ There are two configuration layers:
 | `mongo.database` / `mongodb.database` | Database name. |
 | `mongo.collection` / `mongodb.collection` | Collection name. |
 | `delta.table.path` | Delta table path. |
+| `delta.s3.endpoint` | S3-compatible endpoint for Delta object storage. |
+| `delta.s3.access.key` | S3-compatible access key. |
+| `delta.s3.secret.key` | S3-compatible secret key. |
 | `snowflake.account` | Snowflake account id. |
 | `snowflake.database` | Database name. |
 | `snowflake.schema` | Schema name. |

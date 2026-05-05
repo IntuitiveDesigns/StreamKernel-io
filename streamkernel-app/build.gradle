@@ -29,8 +29,7 @@ dependencies {
     // Built-in plugins
     implementation project(":streamkernel-metrics:metrics-prometheus")
     implementation project(":streamkernel-plugins:sink-kafka")
-    // Snowflake remains intentionally out of the default lean app jar.
-    // Delta is bundled for local lakehouse profiles.
+    // Delta and Snowflake are bundled for public lakehouse and warehouse profiles.
     implementation project(":streamkernel-plugins:source-synthetic")
     implementation project(":streamkernel-plugins:transform-etl")
     implementation project(':streamkernel-plugins:transformer-string-to-wireevent')
@@ -39,6 +38,7 @@ dependencies {
     implementation project(":streamkernel-plugins:sink-mongo-vector")
     implementation project(':streamkernel-plugins:sink-mongo-insert')
     implementation project(':streamkernel-plugins:sink-delta')
+    implementation project(':streamkernel-plugins:sink-snowflake')
 
     runtimeOnly project(":streamkernel-plugins:security-opa")
     runtimeOnly "ch.qos.logback:logback-classic:1.5.12"

@@ -1,0 +1,2 @@
+LogName,ConfigPath,Minutes,KafkaTopic,KafkaPartitions,RunId,HeapGb,GcThreads,GcMode,LatencySampleMask,InflightMax,OutbatchCapacity,ExecutorMode,CacheDisabled,SinkBatchCopy
+streamkernel_lineage_audit_10m,config/pipelines/streamkernel_lineage_audit.properties,10,streamkernel-lineage-audit,12,run-lineage-audit-10,4,3,G1,127,1024,64,FIXED,true,false

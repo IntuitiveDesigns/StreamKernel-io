@@ -6,6 +6,10 @@ StreamKernel benchmark results are meant to be replayed, not guessed from prose.
 
 - `benchmark-runs/tests.csv`: primary CPU suite.
 - `benchmark-runs/tests_oidc.csv`: OIDC/security suite.
+- `benchmark-runs/tests_lineage.csv`: provenance/audit suite.
+- `benchmark-runs/tests_pulsar.csv`: Pulsar seeded-backlog source suite.
+- `benchmark-runs/tests_pulsar_live.csv`: Pulsar live-producer source suite.
+- `benchmark-runs/tests_snowflake.csv`: Snowflake Snowpipe Streaming sink suite.
 
 Each matrix row includes the profile, run length, topic settings, heap size, GC mode, executor mode, cache toggle, sink-copy setting, and run ID.
 
@@ -40,6 +44,11 @@ The CSV row is the public envelope. The pipeline file is the wiring. `meta.json`
 | Kafka at-least-once baseline | `benchmark-runs/tests.csv` | `streamkernel_kafka_at_least_once_baseline_10m` |
 | Kafka exactly-once baseline | `benchmark-runs/tests.csv` | `streamkernel_kafka_exactly_once_baseline_10m` |
 | MongoDB insert baseline | `benchmark-runs/tests.csv` | `streamkernel_mongodb_insert_baseline_10m` |
+| Delta/Spark local lakehouse | `benchmark-runs/tests.csv` | `streamkernel_delta_spark_local_5m` |
+| Lineage audit headers | `benchmark-runs/tests_lineage.csv` | `streamkernel_lineage_audit_10m` |
+| Pulsar source drain | `benchmark-runs/tests_pulsar.csv` | `streamkernel_pulsar_source_kafka_10m` |
+| Pulsar live producer | `benchmark-runs/tests_pulsar_live.csv` | `streamkernel_pulsar_live_kafka_10m` |
+| Snowflake Snowpipe Streaming | `benchmark-runs/tests_snowflake.csv` | `streamkernel_snowflake_snowpipe_streaming_5m` |
 | Source uncorked ceiling | `benchmark-runs/tests.csv` | `streamkernel_source_baseline_uncorked_5m` |
 | OIDC/security profile | `benchmark-runs/tests_oidc.csv` | see matrix rows |
 

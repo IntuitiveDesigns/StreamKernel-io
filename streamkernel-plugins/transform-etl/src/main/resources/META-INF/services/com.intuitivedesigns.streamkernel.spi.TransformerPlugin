@@ -1,2 +1,3 @@
 com.intuitivedesigns.streamkernel.plugins.NoopTransformerPlugin
+com.intuitivedesigns.streamkernel.plugins.transform.DeterministicEnrichmentPlugin
 com.intuitivedesigns.streamkernel.plugins.transform.EmbeddingToEnrichedTicketPlugin

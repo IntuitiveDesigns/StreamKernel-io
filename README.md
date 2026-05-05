@@ -1,5 +1,10 @@
 # StreamKernel
 
+[![GitHub stars](https://img.shields.io/github/stars/IntuitiveDesigns/StreamKernel-io?style=social)](https://github.com/IntuitiveDesigns/StreamKernel-io/stargazers)
+[![GitHub downloads](https://img.shields.io/github/downloads/IntuitiveDesigns/StreamKernel-io/total?label=downloads)](https://github.com/IntuitiveDesigns/StreamKernel-io/releases)
+[![License](https://img.shields.io/badge/license-SSAL%201.0-blue)](LICENSE)
+[![Patent pending](https://img.shields.io/badge/patent-pending-6f42c1)](PATENT-NOTICE.md)
+
 Architected by [Steven Lopez](https://www.linkedin.com/in/steve-lopez-b9941/).
 
 StreamKernel is a source-available event pipeline runtime for teams that need policy, transformation, caching, DLQ routing, and multi-destination delivery inside one fast, auditable JVM process.
@@ -53,6 +58,10 @@ The public suite is driven by CSV matrices in `benchmark-runs/`:
 
 - `benchmark-runs/tests.csv`: primary CPU benchmark suite
 - `benchmark-runs/tests_oidc.csv`: OIDC/security-oriented suite
+- `benchmark-runs/tests_lineage.csv`: provenance/audit evidence
+- `benchmark-runs/tests_pulsar.csv`: Pulsar source portability
+- `benchmark-runs/tests_pulsar_live.csv`: live Pulsar source pressure
+- `benchmark-runs/tests_snowflake.csv`: Snowflake Snowpipe Streaming sink
 
 Each row names the pipeline config, JVM heap, GC mode, runtime duration, topic settings, run ID, executor mode, cache mode, and sink-copy behavior. The runner emits logs, GC output, Prometheus snapshots, effective settings, and `meta.json` for replay.
 
@@ -62,6 +71,19 @@ Each row names the pipeline config, JVM heap, GC mode, runtime duration, topic s
 ```
 
 Full instructions: [docs/18_benchmark_runner.md](docs/18_benchmark_runner.md) and [BENCHMARK_SUITE.md](BENCHMARK_SUITE.md).
+
+## Public Use Cases
+
+| Use Case | Command |
+|---|---|
+| MongoDB insert baseline | `.\test-java-runner.ps1 -MatrixFile .\benchmark-runs\tests.csv -SingleTest streamkernel_mongodb_insert_baseline_10m` |
+| Delta/Spark local lakehouse | `.\test-java-runner.ps1 -MatrixFile .\benchmark-runs\tests.csv -SingleTest streamkernel_delta_spark_local_5m` |
+| Lineage audit headers | `.\test-java-runner.ps1 -MatrixFile .\benchmark-runs\tests_lineage.csv -SingleTest streamkernel_lineage_audit_10m` |
+| Pulsar source drain | `.\test-java-runner.ps1 -MatrixFile .\benchmark-runs\tests_pulsar.csv` |
+| Live Pulsar source pressure | `.\test-java-runner.ps1 -MatrixFile .\benchmark-runs\tests_pulsar_live.csv` |
+| Snowflake Snowpipe Streaming | `.\test-java-runner.ps1 -MatrixFile .\benchmark-runs\tests_snowflake.csv` |
+
+The Delta/Spark and Snowflake profiles use a deterministic public enrichment transform so the connector paths can be published and replayed without private model artifacts.
 
 ## Measured Baselines
 

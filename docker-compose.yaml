@@ -323,6 +323,62 @@ services:
     networks: [streamkernel]
 
   # =======================================================================
+  # MinIO + Spark — Optional (enable with: --profile delta-spark)
+  # =======================================================================
+  minio:
+    profiles: ["delta-spark"]
+    image: minio/minio:latest
+    container_name: minio
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio-data-volume:/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:9000/minio/health/live >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 25
+      start_period: 10s
+    restart: unless-stopped
+    networks: [streamkernel]
+
+  minio-init:
+    profiles: ["delta-spark"]
+    image: minio/mc:latest
+    container_name: minio-init
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: ["/bin/sh", "-lc"]
+    command: >
+      "mc alias set local http://minio:9000 minioadmin minioadmin &&
+       mc mb --ignore-existing local/streamkernel-delta &&
+       mc anonymous set none local/streamkernel-delta"
+    networks: [streamkernel]
+
+  spark:
+    profiles: ["delta-spark"]
+    image: spark:3.5.7-scala2.12-java17-python3-ubuntu
+    container_name: spark
+    depends_on:
+      minio-init:
+        condition: service_completed_successfully
+    environment:
+      HOME: /tmp
+      SPARK_LOCAL_DIRS: /tmp/spark-local
+      SPARK_SUBMIT_OPTS: -Divy.home=/tmp/.ivy2 -Divy.cache.dir=/tmp/.ivy2/cache
+    command: ["sleep", "infinity"]
+    volumes:
+      - ./tools/spark:/opt/streamkernel/tools/spark:ro
+    restart: unless-stopped
+    networks: [streamkernel]
+
+  # =======================================================================
   # Apache Pulsar Standalone — Optional (enable with: --profile pulsar)
   # =======================================================================
   pulsar:
@@ -395,6 +451,7 @@ volumes:
   pulsar-data-volume: {}
   postgres-data-volume: {}
   mongo-data-volume: {}
+  minio-data-volume: {}
 
 networks:
   streamkernel:

@@ -1,0 +1,2 @@
+LogName,ConfigPath,Minutes,KafkaTopic,KafkaPartitions,RunId,HeapGb,GcThreads,GcMode,LatencySampleMask,InflightMax,OutbatchCapacity,ExecutorMode,CacheDisabled,SinkBatchCopy
+streamkernel_snowflake_snowpipe_streaming_5m,config/pipelines/streamkernel_snowflake_snowpipe_streaming.properties,5,n/a,0,run-snowflake-01,6,3,G1,127,1024,64,FIXED,true,false
