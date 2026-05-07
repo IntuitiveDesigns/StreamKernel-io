@@ -9,6 +9,7 @@
   <img src="https://img.shields.io/badge/event--streaming-core-blue" alt="Event Streaming">
   <img src="https://img.shields.io/badge/stream--processing-core-blue" alt="Stream Processing">
   <img src="https://img.shields.io/badge/data--pipeline-core-blue" alt="Data Pipeline">
+  <img src="https://img.shields.io/badge/ai--ready-enrichment-purple" alt="AI Ready Enrichment">
   <img src="https://img.shields.io/badge/java-21-orange" alt="Java 21">
   <img src="https://img.shields.io/badge/jvm-runtime-orange" alt="JVM Runtime">
   <img src="https://img.shields.io/badge/kafka-integration-black" alt="Kafka">
@@ -24,13 +25,13 @@
 
 Architected by [Steven Lopez](https://www.linkedin.com/in/steve-lopez-b9941/).
 
-StreamKernel is a source-available event pipeline runtime for teams that need policy, transformation, caching, DLQ routing, and multi-destination delivery inside one fast, auditable JVM process.
+StreamKernel is a source-available event pipeline runtime for teams that need policy, transformation, AI-ready enrichment, caching, DLQ routing, and multi-destination delivery inside one fast, auditable JVM process.
 
 The category is not "another Kafka client" or "a smaller Spark." StreamKernel sits between event transport, operational systems, and analytical platforms: a programmable pipeline kernel for operational data movement where every extra service hop adds latency, cost, failure modes, and compliance work.
 
 ## Buyer Pain
 
-Most event platforms solve transport, storage, or analytics. Production teams still have to glue together policy sidecars, cache clients, DLQs, schema transforms, metrics, retry logic, and destination-specific writers. That glue becomes the product: it is expensive to build, hard to benchmark, harder to audit, and painful to move across Kafka, Pulsar, REST, MongoDB, Delta, Snowflake, and local test profiles.
+Most event platforms solve transport, storage, or analytics. Production teams still have to glue together policy sidecars, cache clients, DLQs, schema transforms, model or embedding calls, metrics, retry logic, and destination-specific writers. That glue becomes the product: it is expensive to build, hard to benchmark, harder to audit, and painful to move across Kafka, Pulsar, REST, MongoDB, Delta, Snowflake, and local test profiles.
 
 StreamKernel turns that glue into a runtime:
 
@@ -53,7 +54,7 @@ flowchart LR
     Src["Source plugin"]
     Kernel["Core orchestrator<br/>batching, backpressure, lifecycle"]
     Policy["Security plugin<br/>OPA / custom"]
-    Transform["Transformer chain<br/>ETL, cache-aware"]
+    Transform["Transformer chain<br/>ETL, AI, cache-aware"]
     Sink["Sink plugin"]
     Dlq["DLQ sink"]
     Metrics["Metrics provider"]
@@ -102,17 +103,24 @@ Full instructions: [docs/18_benchmark_runner.md](docs/18_benchmark_runner.md) an
 
 The Delta/Spark and Snowflake profiles use a deterministic public enrichment transform so the connector paths can be published and replayed without private model artifacts.
 
+## AI-Ready Runtime
+
+AI is a first-class workload shape for StreamKernel, even when private model adapters and enterprise control-plane integrations are kept out of the public repository. The public runtime shows the safe parts: transformer chains, HTTP enrichment hooks, deterministic enrichment profiles, provenance headers, metrics, DLQ routing, cache-aware execution, and destination writers that can carry enriched records into Kafka, MongoDB, Delta Lake, Snowflake, or custom sinks.
+
+That matters commercially because companies rarely buy AI as a single model call. They buy a governed path from live events to decisions, records, audit evidence, and downstream systems. StreamKernel gives that path a small deployable boundary: model-adjacent logic can run near the event stream, policy can be enforced before delivery, model/version/run labels can travel with the record, and benchmark runs can prove the cost and latency envelope without exposing private model artifacts or proprietary adapter code.
+
 ## Measured Baselines
 
 Published rows were run on an Intel i9-8950HK laptop with 6 cores, 12 threads, and 32GB RAM against a local Docker environment.
 
 | Profile | Avg Throughput | Records | Delivery | Notes |
 |---|---:|---:|---|---|
-| Kafka Bench (NOOP) | 956K ops/sec | 563M | At-least-once | Raw Kafka producer ceiling |
-| Kafka ALO (WireEvent) | 525K ops/sec | 313M | At-least-once | Transform, 512-byte payload |
-| Kafka EOS (WireEvent) | 507K ops/sec | 301M | Exactly-once | -3.5% vs ALO |
-| mTLS + OPA (NOOP) | 366K ops/sec | 217M | At-least-once | TLSv1.3 plus fail-closed OPA |
-| MongoDB Insert | 163K docs/sec | 95.5M | At-least-once | insertMany baseline |
+| [Kafka Bench (NOOP)](benchmark-runs/reports/kafka/StreamKernel_Story_KafkaBench_563M.pdf) | 956K ops/sec | 563M | At-least-once | Raw Kafka producer ceiling |
+| [Kafka ALO (WireEvent)](benchmark-runs/reports/kafka/StreamKernel_Story_ALO_OptimizationRun3.pdf) | 525K ops/sec | 313M | At-least-once | Transform, 512-byte payload |
+| [Kafka EOS (WireEvent)](benchmark-runs/reports/kafka/StreamKernel_Story_Kafka_ExactlyOnce.pdf) | 507K ops/sec | 301M | Exactly-once | -3.5% vs ALO |
+| [mTLS + OPA (NOOP)](benchmark-runs/reports/kafka/StreamKernel_Story_mTLS_OPA_217M.pdf) | 366K ops/sec | 217M | At-least-once | TLSv1.3 plus fail-closed OPA |
+| [MongoDB Insert](benchmark-runs/reports/mongodb/StreamKernel_Story_MongoDB_Insert_95M.pdf) | 163K docs/sec | 95.5M | At-least-once | insertMany baseline |
+| [AI Infrastructure Impact Brief](benchmark-runs/reports/ai/The_Hidden_Environmental_Cost_of_AI_Infrastructure.pdf) | n/a | n/a | Research brief | Environmental and infrastructure-cost context for efficient AI-adjacent pipelines |
 
 ## Why Not Kafka/Flink/Spark/Databricks Alone?
 
@@ -159,6 +167,7 @@ Details: [LICENSE-HISTORY.md](LICENSE-HISTORY.md), [COMMERCIAL.md](COMMERCIAL.md
 | Benchmark suite | [BENCHMARK_SUITE.md](BENCHMARK_SUITE.md) |
 | Runner details | [docs/18_benchmark_runner.md](docs/18_benchmark_runner.md) |
 | Platform comparison | [COMPARISON.md](COMPARISON.md) |
+| AI infrastructure impact | [benchmark-runs/reports/ai/The_Hidden_Environmental_Cost_of_AI_Infrastructure.pdf](benchmark-runs/reports/ai/The_Hidden_Environmental_Cost_of_AI_Infrastructure.pdf) |
 | Demo script | [DEMO_5_MIN.md](DEMO_5_MIN.md) |
 | Plugin example | [docs/plugin-example.md](docs/plugin-example.md) |
 | Commercial licensing | [COMMERCIAL.md](COMMERCIAL.md) |
