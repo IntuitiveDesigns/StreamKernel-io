@@ -9,12 +9,14 @@
   <img src="https://img.shields.io/badge/event--streaming-core-blue" alt="Event Streaming">
   <img src="https://img.shields.io/badge/stream--processing-core-blue" alt="Stream Processing">
   <img src="https://img.shields.io/badge/data--pipeline-core-blue" alt="Data Pipeline">
-  <img src="https://img.shields.io/badge/ai--ready-enrichment-purple" alt="AI Ready Enrichment">
+  <img src="https://img.shields.io/badge/in--process%20ONNX-inference-purple" alt="In-Process ONNX Inference">
+  <img src="https://img.shields.io/badge/mlflow-model%20registry-blue" alt="MLflow Model Registry">
+  <img src="https://img.shields.io/badge/live%20model-hot--swap-purple" alt="Live Model Hot-Swap">
   <img src="https://img.shields.io/badge/java-21-orange" alt="Java 21">
   <img src="https://img.shields.io/badge/jvm-runtime-orange" alt="JVM Runtime">
   <img src="https://img.shields.io/badge/kafka-integration-black" alt="Kafka">
   <img src="https://img.shields.io/badge/apache--pulsar-integration-blue" alt="Apache Pulsar">
-  <img src="https://img.shields.io/badge/mongodb-sink-green" alt="MongoDB">
+  <img src="https://img.shields.io/badge/mongodb-vector%20sink-green" alt="MongoDB Vector">
   <img src="https://img.shields.io/badge/delta--lake-sink-blue" alt="Delta Lake">
   <img src="https://img.shields.io/badge/snowflake-sink-lightgrey" alt="Snowflake">
   <img src="https://img.shields.io/badge/policy--as--code-supported-purple" alt="Policy as Code">
@@ -25,26 +27,40 @@
 
 Architected by [Steven Lopez](https://www.linkedin.com/in/steve-lopez-b9941/).
 
-StreamKernel is a source-available event pipeline runtime for teams that need policy, transformation, AI-ready enrichment, caching, DLQ routing, and multi-destination delivery inside one fast, auditable JVM process.
+StreamKernel is a source-available JVM pipeline runtime with a protected commercial AI path for teams that need in-process enrichment, policy enforcement, transformation, caching, DLQ routing, and multi-destination delivery inside one fast, auditable process. The public repository shows the runtime boundary, SDK contracts, benchmark evidence, and buyer-facing AI capability; private model artifacts and protected DJL/ONNX/MLflow implementation details are withheld for IP protection and commercial licensing.
 
-The category is not "another Kafka client" or "a smaller Spark." StreamKernel sits between event transport, operational systems, and analytical platforms: a programmable pipeline kernel for operational data movement where every extra service hop adds latency, cost, failure modes, and compliance work.
+The category is not "another Kafka client" or "a smaller Spark." StreamKernel sits between event transport, operational systems, and analytical platforms: a programmable pipeline kernel where AI enrichment, policy, and delivery share a single runtime boundary.
 
 ## Buyer Pain
 
-Most event platforms solve transport, storage, or analytics. Production teams still have to glue together policy sidecars, cache clients, DLQs, schema transforms, model or embedding calls, metrics, retry logic, and destination-specific writers. That glue becomes the product: it is expensive to build, hard to benchmark, harder to audit, and painful to move across Kafka, Pulsar, REST, MongoDB, Delta, Snowflake, and local test profiles.
+Most event platforms solve transport, storage, or analytics. Production teams still have to glue together policy sidecars, cache clients, DLQs, schema transforms, model or embedding calls, model version management, metrics, retry logic, and destination-specific writers. That glue becomes the product: it is expensive to build, hard to benchmark, harder to audit, and painful to move across Kafka, Pulsar, REST, MongoDB, Delta, Snowflake, and local test profiles.
 
 StreamKernel turns that glue into a runtime:
 
 - one `.properties` file per pipeline
-- one JVM process for source, policy, transform, cache, sink, DLQ, and metrics
+- one JVM process for source, policy, transform, ONNX inference, cache, sink, DLQ, and metrics
+- one protected commercial model registry integration for live promotion and automated rollback
 - one SPI for author-owned plugins
 - one benchmark runner that records the exact JVM and runtime envelope
 
 ## What It Is For
 
-- Regulated event pipelines that need per-batch policy, provenance, DLQ handling, and reproducible evidence.
+- AI enrichment pipelines that need in-process inference, model version governance, and provenance without a sidecar or remote inference service.
+- Regulated event pipelines that need per-batch policy, audit headers, DLQ handling, and reproducible evidence.
 - Teams that want Kafka, Pulsar, REST, Delta, Snowflake, MongoDB, and DevNull paths without rewriting the orchestration layer.
 - Platform teams that want customers or internal groups to bring their own plugins without giving up runtime control.
+
+## Why Companies Contact
+
+| Buyer trigger | Why StreamKernel is worth a conversation |
+|---|---|
+| AI needs to happen in the event path, not after the fact | Protected DJL/ONNX enrichment runs inside the pipeline boundary, avoiding a separate model-serving hop for every record. |
+| Model changes need operational guardrails | MLflow registry integration gives teams a path for model promotion, provenance, and health-gated rollback without redeploying the pipeline. |
+| AI output must be auditable | Enriched records can carry model/version/run labels into Kafka, MongoDB vector collections, Delta Lake, Snowflake, or custom sinks. |
+| Glue code is becoming the product | Source, policy, transform, inference, cache, DLQ, metrics, and sink behavior share one JVM lifecycle and one benchmark envelope. |
+| The deployment has to fit an enterprise or OEM boundary | Commercial licensing can cover private builds, redistribution, managed services, support, and negotiated patent rights. |
+
+The public repo intentionally gives buyers enough to evaluate the architecture and evidence. A commercial conversation is where private demos, implementation review under NDA, production packaging, and license terms belong.
 
 ## Architecture
 
@@ -54,12 +70,14 @@ flowchart LR
     Src["Source plugin"]
     Kernel["Core orchestrator<br/>batching, backpressure, lifecycle"]
     Policy["Security plugin<br/>OPA / custom"]
-    Transform["Transformer chain<br/>ETL, AI, cache-aware"]
+    Transform["Transformer chain<br/>ONNX inference, ETL, cache-aware"]
     Sink["Sink plugin"]
     Dlq["DLQ sink"]
     Metrics["Metrics provider"]
+    MLflow["MLflow model registry<br/>live promotion + rollback"]
   end
 
+  MLflow -->|model registry signal| Transform
   Src --> Kernel --> Policy
   Policy -->|allow| Transform --> Sink
   Policy -->|deny / failure| Dlq
@@ -68,7 +86,24 @@ flowchart LR
   Sink --> Metrics
 ```
 
-More detail: [ARCHITECTURE.md](ARCHITECTURE.md) and [MODULES.md](MODULES.md).
+More detail: [ARCHITECTURE.md](ARCHITECTURE.md), [MODULES.md](MODULES.md), and [MLFLOW_AI_INTEGRATION.md](MLFLOW_AI_INTEGRATION.md).
+
+## Commercial AI Capability: DJL + ONNX + MLflow
+
+StreamKernel's AI differentiator is not just that it can call a model. The commercial value is that model inference, policy, provenance, delivery, DLQ handling, and runtime metrics can live inside one operational pipeline boundary. That is the part companies usually have to assemble from sidecars, model servers, orchestration scripts, retry logic, custom sink writers, and audit glue.
+
+The public repository deliberately publishes the buying evidence rather than the protected implementation: what runs, what it integrates with, what the benchmark logs prove, and where the commercial licensing boundary starts. Private model artifacts, protected lifecycle mechanics, and proprietary adapter code are not published here.
+
+| Capability | Buyer reason |
+|---|---|
+| DJL + ONNX in-process enrichment | Run embedding or classification-style enrichment in the JVM pipeline instead of adding a per-record network hop to a separate inference service. |
+| MLflow model registry integration | Treat the model registry as an operational control point for bootstrap, promotion, provenance, and rollback evidence. |
+| Live model promotion and rollback evidence | Demonstrates that StreamKernel can keep the pipeline running while model governance events happen. |
+| Multi-sink AI delivery | Carry enriched records to Kafka, MongoDB vector collections, Delta Lake, Snowflake, or custom enterprise sinks. |
+| Per-record model provenance | Preserve model/version/run labels for regulated environments, audit review, and downstream investigation. |
+| Benchmarkable runtime envelope | Show customers throughput, latency, record counts, JVM settings, and sink behavior from reproducible runs. |
+
+Full evidence and the public/private boundary: [MLFLOW_AI_INTEGRATION.md](MLFLOW_AI_INTEGRATION.md).
 
 ## Reproducible Benchmark Suite
 
@@ -103,15 +138,11 @@ Full instructions: [docs/18_benchmark_runner.md](docs/18_benchmark_runner.md) an
 
 The Delta/Spark and Snowflake profiles use a deterministic public enrichment transform so the connector paths can be published and replayed without private model artifacts.
 
-## AI-Ready Runtime
-
-AI is a first-class workload shape for StreamKernel, even when private model adapters and enterprise control-plane integrations are kept out of the public repository. The public runtime shows the safe parts: transformer chains, HTTP enrichment hooks, deterministic enrichment profiles, provenance headers, metrics, DLQ routing, cache-aware execution, and destination writers that can carry enriched records into Kafka, MongoDB, Delta Lake, Snowflake, or custom sinks.
-
-That matters commercially because companies rarely buy AI as a single model call. They buy a governed path from live events to decisions, records, audit evidence, and downstream systems. StreamKernel gives that path a small deployable boundary: model-adjacent logic can run near the event stream, policy can be enforced before delivery, model/version/run labels can travel with the record, and benchmark runs can prove the cost and latency envelope without exposing private model artifacts or proprietary adapter code.
-
 ## Measured Baselines
 
 Published rows were run on an Intel i9-8950HK laptop with 6 cores, 12 threads, and 32GB RAM against a local Docker environment.
+
+**Transport and delivery baselines:**
 
 | Profile | Avg Throughput | Records | Delivery | Notes |
 |---|---:|---:|---|---|
@@ -122,16 +153,30 @@ Published rows were run on an Intel i9-8950HK laptop with 6 cores, 12 threads, a
 | [MongoDB Insert](benchmark-runs/reports/mongodb/StreamKernel_Story_MongoDB_Insert_95M.pdf) | 163K docs/sec | 95.5M | At-least-once | insertMany baseline |
 | [AI Infrastructure Impact Brief](benchmark-runs/reports/ai/The_Hidden_Environmental_Cost_of_AI_Infrastructure.pdf) | n/a | n/a | Research brief | Environmental and infrastructure-cost context for efficient AI-adjacent pipelines |
 
+**AI enrichment baselines (May 4, 2026 — see [MLFLOW_AI_INTEGRATION.md](MLFLOW_AI_INTEGRATION.md) for full evidence):**
+
+| Profile | Avg Throughput | Records | Sink | Notes |
+|---|---:|---:|---|---|
+| ONNX Embedding → Kafka (TIER A) | 204 eps | 122,272 | Kafka | DIRECT_TEXT mode; P50 ~298ms, P99 ~400ms |
+| ONNX Embedding → MongoDB Vector | 331 eps | 198,560 | MongoDB vector | Zero record loss |
+| MLflow Bootstrap → Delta Lake | 38 eps | 11,072 | Delta Lake | MLflow champion artifact at startup |
+| Pulsar → ONNX → Delta Lake | 16 eps | 9,600 | Delta Lake | Transport-agnostic AI path |
+| Lineage Audit (DJL chain) | 36 eps | 21,504 | Kafka | Provenance headers, 10-minute sustained |
+| Live Model Swap + Rollback | — | 10,496 | Kafka | Promote v4→v10; auto-rollback in ~4s; zero restarts |
+
+> AI enrichment evidence was generated from the protected AI build: ONNX Runtime 1.20.0, DJL 0.32.0, MiniLM-L6-v2, CPU-only, single JAR, local Docker. The public repo documents evidence and integration boundaries; it does not publish private model artifacts or protected implementation code.
+
 ## Why Not Kafka/Flink/Spark/Databricks Alone?
 
-Use those platforms where they are strongest. StreamKernel is for the operational gap around them: fast per-event intelligence, policy, and delivery inside one embeddable runtime.
+Use those platforms where they are strongest. StreamKernel is for the operational gap around them: fast per-event AI enrichment, policy, and delivery inside one embeddable runtime.
 
 | Platform | Strong At | Gap StreamKernel Targets |
 |---|---|---|
-| Kafka | Durable event transport | Does not provide a pipeline kernel for policy, cache, DLQ, and destination writes. |
-| Flink | Stateful stream processing | Heavier cluster/runtime model when the job is local policy, transformation, or sink fanout. |
-| Spark | Batch and large-scale analytics | Not designed for low-latency single-process operational event paths. |
-| Databricks | Managed lakehouse and ML platform | Excellent destination/control plane, but not a small embeddable runtime for edge or product-owned pipelines. |
+| Kafka | Durable event transport | Does not provide a pipeline kernel for policy, cache, in-process inference, DLQ, and destination writes. |
+| Flink | Stateful stream processing | Heavier cluster/runtime model when the job is local AI enrichment, policy, or sink fanout. |
+| Spark | Batch and large-scale analytics | Not designed for low-latency single-process operational AI event paths. |
+| Databricks | Managed lakehouse and ML platform | Excellent destination/control plane; MLflow registry is a natural pairing. StreamKernel is the embeddable runtime that consumes from that registry and enriches events at the edge. |
+| Sidecar inference services | Remote model serving | Network hop per record, no shared batch lifecycle with the pipeline, no integrated rollback. |
 
 Full comparison: [COMPARISON.md](COMPARISON.md).
 
@@ -163,6 +208,7 @@ Details: [LICENSE-HISTORY.md](LICENSE-HISTORY.md), [COMMERCIAL.md](COMMERCIAL.md
 | Need | Link |
 |---|---|
 | Architecture | [ARCHITECTURE.md](ARCHITECTURE.md) |
+| AI enrichment + MLflow evidence | [MLFLOW_AI_INTEGRATION.md](MLFLOW_AI_INTEGRATION.md) |
 | Module boundaries | [MODULES.md](MODULES.md) |
 | Benchmark suite | [BENCHMARK_SUITE.md](BENCHMARK_SUITE.md) |
 | Runner details | [docs/18_benchmark_runner.md](docs/18_benchmark_runner.md) |
