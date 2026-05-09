@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.LockSupport;
 
 public final class SyntheticSource implements SourceConnector<String> {
 
@@ -68,9 +69,12 @@ public final class SyntheticSource implements SourceConnector<String> {
     private final PipelinePayload<String>[] ringBuffer;
     private final int mask;
     private final AtomicLong sequence = new AtomicLong(0);
+    private final AtomicLong nextEmissionNs = new AtomicLong(0);
     private final boolean highEntropy;
     private final boolean unsafeReuseBatch;
     private final TextProfile textProfile;
+    private final long maxRecordsPerSecond;
+    private final double nanosPerRecord;
     private final ThreadLocal<ArrayList<PipelinePayload<String>>> recycledBatch;
 
     public SyntheticSource(int payloadSize, boolean highEntropy) {
@@ -84,6 +88,17 @@ public final class SyntheticSource implements SourceConnector<String> {
 
     @SuppressWarnings("unchecked")
     public SyntheticSource(int payloadSize, int bufferCount, boolean highEntropy, boolean unsafeReuseBatch, TextProfile textProfile) {
+        this(payloadSize, bufferCount, highEntropy, unsafeReuseBatch, textProfile, 0L);
+    }
+
+    @SuppressWarnings("unchecked")
+    public SyntheticSource(
+            int payloadSize,
+            int bufferCount,
+            boolean highEntropy,
+            boolean unsafeReuseBatch,
+            TextProfile textProfile,
+            long maxRecordsPerSecond) {
         if (payloadSize <= 0) throw new IllegalArgumentException("payloadSize must be positive");
         if (bufferCount <= 0) throw new IllegalArgumentException("bufferCount must be positive");
         if (bufferCount > MAX_BUFFER_CAPACITY) throw new IllegalArgumentException("bufferCount exceeds limit (1<<30)");
@@ -93,11 +108,15 @@ public final class SyntheticSource implements SourceConnector<String> {
         this.highEntropy = highEntropy;
         this.unsafeReuseBatch = unsafeReuseBatch;
         this.textProfile = (textProfile == null) ? TextProfile.ENTROPY : textProfile;
+        this.maxRecordsPerSecond = Math.max(0L, maxRecordsPerSecond);
+        this.nanosPerRecord = this.maxRecordsPerSecond > 0L
+                ? 1_000_000_000.0 / this.maxRecordsPerSecond
+                : 0.0;
         this.ringBuffer = (PipelinePayload<String>[]) new PipelinePayload[capacity];
         this.recycledBatch = unsafeReuseBatch ? ThreadLocal.withInitial(() -> new ArrayList<>(DEFAULT_RECYCLED_LIST_CAP)) : null;
 
-        log.info("Initializing SyntheticSource: capacity={} (requested={}) payloadChars={} textProfile={} entropyMode={} unsafeReuseBatch={}",
-                capacity, bufferCount, payloadSize, this.textProfile, highEntropy ? "HIGH" : "LOW", unsafeReuseBatch);
+        log.info("Initializing SyntheticSource: capacity={} (requested={}) payloadChars={} textProfile={} entropyMode={} unsafeReuseBatch={} maxRecordsPerSecond={}",
+                capacity, bufferCount, payloadSize, this.textProfile, highEntropy ? "HIGH" : "LOW", unsafeReuseBatch, this.maxRecordsPerSecond);
 
         for (int i = 0; i < capacity; i++) {
             ringBuffer[i] = PipelinePayload.of(buildPayload(payloadSize, i));
@@ -114,6 +133,7 @@ public final class SyntheticSource implements SourceConnector<String> {
 
     @Override
     public PipelinePayload<String> fetch() {
+        throttle(1);
         long seq = sequence.getAndIncrement();
         return ringBuffer[(int) (seq & mask)];
     }
@@ -121,6 +141,7 @@ public final class SyntheticSource implements SourceConnector<String> {
     @Override
     public List<PipelinePayload<String>> fetchBatch(int maxBatchSize) {
         if (maxBatchSize <= 0) return Collections.emptyList();
+        throttle(maxBatchSize);
         final List<PipelinePayload<String>> batch;
         if (unsafeReuseBatch) {
             ArrayList<PipelinePayload<String>> reusable = recycledBatch.get();
@@ -136,6 +157,27 @@ public final class SyntheticSource implements SourceConnector<String> {
             batch.add(ringBuffer[index]);
         }
         return batch;
+    }
+
+    private void throttle(int records) {
+        if (records <= 0 || maxRecordsPerSecond <= 0L) {
+            return;
+        }
+
+        final long reservedNs = Math.max(1L, (long) Math.ceil(records * nanosPerRecord));
+        while (true) {
+            final long now = System.nanoTime();
+            final long previous = nextEmissionNs.get();
+            final long start = Math.max(now, previous);
+            final long target = start + reservedNs;
+            if (nextEmissionNs.compareAndSet(previous, target)) {
+                final long sleepNs = start - now;
+                if (sleepNs > 0L) {
+                    LockSupport.parkNanos(sleepNs);
+                }
+                return;
+            }
+        }
     }
 
     private String buildPayload(int payloadSize, int slot) {

@@ -4,7 +4,7 @@ streamkernel_resource_bounded_deployability_10m,config/pipelines/streamkernel_re
 streamkernel_kafka_at_least_once_baseline_10m,config/pipelines/streamkernel_kafka_at_least_once_baseline.properties,10,arena-bench-test,12,run-alo-baseline-01,6,3,G1,0,0,2000,FIXED,true,false
 streamkernel_kafka_exactly_once_baseline_10m,config/pipelines/streamkernel_kafka_exactly_once_baseline.properties,10,arena-bench-test,12,run-eos-baseline-01,6,3,G1,0,0,500,FIXED,true,false
 streamkernel_mongodb_insert_baseline_10m,config/pipelines/streamkernel_mongodb_insert_baseline.properties,10,n/a,0,run-mongo-insert-01,8,5,ZGC,0,18000,500,FIXED,true,false
-streamkernel_delta_spark_local_5m,config/pipelines/streamkernel_delta_spark_local.properties,5,n/a,0,run-delta-spark-01,6,3,G1,127,1024,128,FIXED,true,false
+streamkernel_delta_spark_local_5m,config/pipelines/streamkernel_delta_spark_local.properties,5,n/a,0,run-delta-spark-01,6,3,G1,0,256,128,FIXED,true,false
 streamkernel_synthetic_to_kafka_sink_enterprise_mtls_opa_10m,config/pipelines/streamkernel_synthetic_to_kafka_sink_enterprise_mtls_opa.properties,10,arena-bench-test,12,run-mtls-opa-01,6,3,G1,0,0,1000,FIXED,true,false
 streamkernel_enterprise_dlq_kafka_10m,config/pipelines/streamkernel_enterprise_dlq_kafka.properties,10,arena-bench-test,12,run-dlq-kafka-01,6,3,G1,0,500000,1000,FIXED,true,false
 streamkernel_enterprise_opa_resilience_10m,config/pipelines/streamkernel_enterprise_opa_resilience.properties,10,arena-bench-test,12,run-opa-resilience-01,6,3,G1,0,200000,1000,FIXED,true,false

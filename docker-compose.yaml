@@ -361,6 +361,21 @@ services:
        mc anonymous set none local/streamkernel-delta"
     networks: [streamkernel]
 
+  minio-reset:
+    profiles: ["delta-spark"]
+    image: minio/mc:latest
+    container_name: minio-reset
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: ["/bin/sh", "-lc"]
+    command: >
+      "mc alias set local http://minio:9000 minioadmin minioadmin &&
+       mc rm --recursive --force local/streamkernel-delta/enriched-tickets-public/ || true &&
+       echo 'Delta table cleared. Ready for next run.'"
+    restart: "no"
+    networks: [streamkernel]  
+
   spark:
     profiles: ["delta-spark"]
     image: spark:3.5.7-scala2.12-java17-python3-ubuntu
