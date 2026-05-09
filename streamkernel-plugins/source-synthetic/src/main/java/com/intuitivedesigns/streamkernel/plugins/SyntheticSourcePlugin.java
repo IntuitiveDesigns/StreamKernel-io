@@ -27,6 +27,7 @@ public final class SyntheticSourcePlugin implements SourcePlugin {
     private static final String CFG_ENTROPY_ALIAS = "source.synthetic.entropy";
     private static final String CFG_TEXT_PROFILE = "source.synthetic.text.profile";
     private static final String CFG_UNSAFE_REUSE = "source.unsafe.reuse.batch";
+    private static final String CFG_MAX_RECORDS_PER_SECOND = "source.synthetic.max.records.per.second";
 
     private static final int DEFAULT_PAYLOAD_SIZE = 1024;
     private static final int DEFAULT_BUFFER_SIZE  = 262_144;
@@ -49,8 +50,9 @@ public final class SyntheticSourcePlugin implements SourcePlugin {
         final boolean highEntropy = resolveHighEntropy(config);
         final SyntheticSource.TextProfile textProfile = resolveTextProfile(config);
         final boolean unsafeReuse = config.getBoolean(CFG_UNSAFE_REUSE, DEFAULT_UNSAFE_REUSE);
+        final long maxRecordsPerSecond = Math.max(0L, config.getLong(CFG_MAX_RECORDS_PER_SECOND, 0L));
 
-        return new SyntheticSource(payloadSize, bufferSize, highEntropy, unsafeReuse, textProfile);
+        return new SyntheticSource(payloadSize, bufferSize, highEntropy, unsafeReuse, textProfile, maxRecordsPerSecond);
     }
 
     private static int clamp(int v, int min, int max) {
