@@ -51,6 +51,9 @@ docs/*publication*
 .mlflow-model-cache/
 .streamkernel-tmp/
 benchmark-runs/*
+!benchmark-runs/
+!benchmark-runs/reports/
+!benchmark-runs/reports/**
 !benchmark-runs/tests*.csv
 # --- StreamKernel enterprise hygiene ---
 # local secrets
