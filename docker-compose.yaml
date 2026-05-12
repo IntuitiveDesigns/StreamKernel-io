@@ -6,11 +6,18 @@
 
 name: streamkernel-local
 
+x-streamkernel-platform: &streamkernel-platform
+  # Docker Desktop on Apple Silicon can run the local stack through amd64
+  # emulation. Override to linux/arm64 only after confirming every enabled
+  # image in the selected profile publishes an ARM64 variant.
+  platform: ${STREAMKERNEL_DOCKER_PLATFORM:-linux/amd64}
+
 services:
   # =======================================================================
   # Hugging Face Text Embeddings Inference (TEI)
   # =======================================================================
   tei:
+    <<: *streamkernel-platform
     image: ghcr.io/huggingface/text-embeddings-inference:cpu-1.8.1
     container_name: tei
     ulimits:
@@ -39,6 +46,7 @@ services:
   # OPEN POLICY AGENT (OPA) — Authorization
   # =======================================================================
   opa:
+    <<: *streamkernel-platform
     image: openpolicyagent/opa:latest-debug
     container_name: opa
     ports:
@@ -65,6 +73,7 @@ services:
   # KEYCLOAK — Local OIDC issuer for Kafka SASL/OAUTHBEARER tests
   # =======================================================================
   keycloak:
+    <<: *streamkernel-platform
     image: quay.io/keycloak/keycloak:latest
     container_name: keycloak
     profiles: ["oidc"]
@@ -108,9 +117,11 @@ services:
   #   SSL            -> broker:29094    (mTLS)
   # =======================================================================
   broker:
+    <<: *streamkernel-platform
     image: confluentinc/cp-kafka:7.6.1
     container_name: broker
     hostname: broker
+    init: true
     ports:
       - "9092:9092"
       - "9093:9093"
@@ -181,9 +192,9 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "kafka-broker-api-versions --bootstrap-server localhost:9092 >/dev/null 2>&1 || exit 1"]
       interval: 10s
-      timeout: 5s
-      retries: 25
-      start_period: 20s
+      timeout: 10s
+      retries: 40
+      start_period: 60s
     restart: unless-stopped
     networks: [streamkernel]
 
@@ -192,6 +203,7 @@ services:
   # Disable by running compose without it (or create a "no-sr" profile later).
   # =======================================================================
   schema-registry:
+    <<: *streamkernel-platform
     image: confluentinc/cp-schema-registry:7.6.1
     container_name: schema-registry
     depends_on:
@@ -250,6 +262,7 @@ services:
   # Kafka Exporter (Prometheus)
   # =======================================================================
   kafka-exporter:
+    <<: *streamkernel-platform
     image: danielqsj/kafka-exporter:latest
     container_name: kafka-exporter
     depends_on:
@@ -266,6 +279,7 @@ services:
   # Postgres + Exporter — Optional (enable with: --profile postgres)
   # =======================================================================
   postgres:
+    <<: *streamkernel-platform
     profiles: ["postgres"]
     image: postgres:16
     container_name: postgres
@@ -287,6 +301,7 @@ services:
     networks: [streamkernel]
 
   postgres-exporter:
+    <<: *streamkernel-platform
     profiles: ["postgres"]
     image: prometheuscommunity/postgres-exporter:latest
     container_name: postgres-exporter
@@ -304,6 +319,7 @@ services:
   # MongoDB — Optional (enable with: --profile mongo)
   # =======================================================================
   mongodb:
+    <<: *streamkernel-platform
     profiles: ["mongo"]
     image: mongo:7.0
     container_name: mongodb
@@ -326,6 +342,7 @@ services:
   # MinIO + Spark — Optional (enable with: --profile delta-spark)
   # =======================================================================
   minio:
+    <<: *streamkernel-platform
     profiles: ["delta-spark"]
     image: minio/minio:latest
     container_name: minio
@@ -348,6 +365,7 @@ services:
     networks: [streamkernel]
 
   minio-init:
+    <<: *streamkernel-platform
     profiles: ["delta-spark"]
     image: minio/mc:latest
     container_name: minio-init
@@ -362,6 +380,7 @@ services:
     networks: [streamkernel]
 
   minio-reset:
+    <<: *streamkernel-platform
     profiles: ["delta-spark"]
     image: minio/mc:latest
     container_name: minio-reset
@@ -377,6 +396,7 @@ services:
     networks: [streamkernel]  
 
   spark:
+    <<: *streamkernel-platform
     profiles: ["delta-spark"]
     image: spark:3.5.7-scala2.12-java17-python3-ubuntu
     container_name: spark
@@ -397,9 +417,11 @@ services:
   # Apache Pulsar Standalone — Optional (enable with: --profile pulsar)
   # =======================================================================
   pulsar:
+    <<: *streamkernel-platform
     profiles: ["pulsar"]
     image: apachepulsar/pulsar:3.3.9
     container_name: pulsar
+    init: true
     ports:
       - "6650:6650"
       - "8082:8080"
@@ -411,9 +433,9 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "bin/pulsar-admin topics list public/default >/dev/null 2>&1 || exit 1"]
       interval: 10s
-      timeout: 5s
-      retries: 30
-      start_period: 30s
+      timeout: 10s
+      retries: 60
+      start_period: 60s
     restart: unless-stopped
     networks: [streamkernel]
 
@@ -421,6 +443,7 @@ services:
   # Prometheus
   # =======================================================================
   prometheus:
+    <<: *streamkernel-platform
     image: prom/prometheus:latest
     container_name: prometheus
     depends_on:

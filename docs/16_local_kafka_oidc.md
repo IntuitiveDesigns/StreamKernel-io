@@ -25,6 +25,13 @@ Keycloak imports `tools/keycloak/streamkernel-realm.json` with two confidential 
 
 ### Start the local stack
 
+Generate local Kafka certs first; the shared broker still starts its SSL
+listeners even when the OIDC lane uses `SASL_PLAINTEXT`:
+
+```bash
+bash scripts/gen-certs.sh
+```
+
 ```powershell
 docker compose --profile oidc --env-file .\config\kafka\oidc.compose.env up -d keycloak broker schema-registry
 ```

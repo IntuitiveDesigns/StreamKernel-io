@@ -1,38 +1,61 @@
-# 03 — mTLS (SSL) Kafka Connectivity
+# 03 - mTLS (SSL) Kafka Connectivity
 
 Validates:
-- Broker listens on 9093
-- Client keystore/truststore readable
-- StreamKernel produces via SSL
 
-## 1) Ensure broker starts cleanly
+- Broker listens on `localhost:9093`.
+- Client keystore/truststore files are readable.
+- StreamKernel can produce through the SSL listener.
 
-Broker requires `KAFKA_SSL_KEY_CREDENTIALS` and friends. Create this file:
+## 1) Generate Local Kafka Certs
 
-```powershell
-"changeit" | Out-File -Encoding ascii .\secrets\password.txt
+The Docker Compose broker always configures SSL listeners. Generate the local
+development keystores before starting `broker`, even for profiles that use the
+PLAINTEXT listener:
+
+```bash
+bash scripts/gen-certs.sh
 ```
 
-Restart broker:
+On Windows with Git Bash:
+
+```powershell
+$env:MSYS_NO_PATHCONV = "1"
+& "C:\Program Files\Git\bin\bash.exe" scripts/gen-certs.sh
+```
+
+The script creates:
+
+- `secrets/kafka.server.keystore.p12`
+- `secrets/kafka.client.keystore.p12`
+- `secrets/kafka.truststore.p12`
+- `secrets/keystore_creds`
+- `secrets/key_creds`
+- `secrets/truststore_creds`
+
+The password is `changeit` for local development only. The generated files are
+ignored by git.
+
+## 2) Restart Broker
+
 ```powershell
 docker compose up -d --force-recreate broker
-docker logs arena-broker --tail 80
+docker logs broker --tail 80
 ```
 
-## 2) Verify port
+## 3) Verify Port
 
 ```powershell
 Test-NetConnection localhost -Port 9093
 ```
 
-## 3) Verify keystores
+## 4) Verify Keystores
 
 ```powershell
 keytool -list -storetype PKCS12 -keystore .\secrets\kafka.client.keystore.p12 -storepass changeit
 keytool -list -storetype PKCS12 -keystore .\secrets\kafka.truststore.p12 -storepass changeit
 ```
 
-## 4) Configure StreamKernel
+## 5) Configure StreamKernel
 
 ```properties
 kafka.broker=localhost:9093
@@ -50,12 +73,13 @@ kafka.ssl.key.password=changeit
 kafka.ssl.endpoint.identification.algorithm=
 ```
 
-## 5) Run + Validate
+## 6) Run And Validate
 
-Run StreamKernel, then consume from primary (PLAINTEXT consumer inside docker):
+Run StreamKernel, then consume from the primary topic through the PLAINTEXT
+listener inside Docker:
 
 ```powershell
-docker exec -it arena-broker kafka-console-consumer --bootstrap-server broker:29092 `
+docker exec -it broker kafka-console-consumer --bootstrap-server broker:29092 `
   --topic arena-bench-test --from-beginning --max-messages 5 `
   --property print.key=true --property key.separator=" | "
 ```

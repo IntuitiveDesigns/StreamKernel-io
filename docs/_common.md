@@ -2,9 +2,38 @@
 
 ## Assumptions
 
-- StreamKernel runs on the host (Windows PowerShell).
+- StreamKernel runs on the host (Windows PowerShell, PowerShell 7 on macOS, or
+  a POSIX shell for build-only commands).
 - Infra runs via Docker Compose in the repo root.
-- Container names match your compose file (e.g., `arena-broker`, `streamkernel-opa-1`).
+- Container names match `docker-compose.yaml` (for example `broker`, `pulsar`,
+  `opa`, `mongodb`).
+
+## Local Kafka Certs
+
+Run this once before starting Kafka-backed profiles:
+
+```bash
+bash scripts/gen-certs.sh
+```
+
+On Windows with Git Bash:
+
+```powershell
+$env:MSYS_NO_PATHCONV = "1"
+& "C:\Program Files\Git\bin\bash.exe" scripts/gen-certs.sh
+```
+
+The script creates local development keystores plus the Confluent `*_creds`
+files required by the compose broker. This is needed by mTLS rows and by
+PLAINTEXT rows too, because the shared broker service still starts SSL
+listeners.
+
+## macOS / Apple Silicon
+
+`docker-compose.yaml` defaults `STREAMKERNEL_DOCKER_PLATFORM` to `linux/amd64`
+so Docker Desktop can run the local benchmark images on Apple Silicon through
+emulation. Native ARM64 can be tested by overriding the variable, but only after
+verifying every enabled image supports it.
 
 ## Common Ports
 
@@ -21,25 +50,25 @@
 
 ```powershell
 docker compose ps
-docker logs arena-broker --tail 50
-docker logs streamkernel-opa-1 --tail 50
+docker logs broker --tail 50
+docker logs opa --tail 50
 ```
 
 ## Topic Commands
 
 List topics:
 ```powershell
-docker exec -it arena-broker kafka-topics --bootstrap-server broker:29092 --list
+docker exec -it broker kafka-topics --bootstrap-server broker:29092 --list
 ```
 
 Describe a topic:
 ```powershell
-docker exec -it arena-broker kafka-topics --bootstrap-server broker:29092 --describe --topic arena-bench-test
+docker exec -it broker kafka-topics --bootstrap-server broker:29092 --describe --topic arena-bench-test
 ```
 
 Consume from a topic:
 ```powershell
-docker exec -it arena-broker kafka-console-consumer --bootstrap-server broker:29092 `
+docker exec -it broker kafka-console-consumer --bootstrap-server broker:29092 `
   --topic arena-bench-test --from-beginning --max-messages 5 `
   --property print.key=true --property key.separator=" | "
 ```
@@ -64,4 +93,5 @@ Do not commit private keys/keystores. Add to `.gitignore`:
 - `secrets/`
 - `*.jks`
 - `*.p12`
+- `*_creds`
 - `password.txt`

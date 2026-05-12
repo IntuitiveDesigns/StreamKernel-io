@@ -90,10 +90,16 @@ echo "--> 4. Creating Truststore (Shared)"
 keytool -importcert -noprompt -alias ca-root -file ca-cert \
   -keystore kafka.truststore.p12 -storetype "$STORETYPE" -storepass "$PASSWORD"
 
-echo "--> 5. Cleanup"
+echo "--> 5. Creating Confluent credential files"
+printf "%s\n" "$PASSWORD" > keystore_creds
+printf "%s\n" "$PASSWORD" > key_creds
+printf "%s\n" "$PASSWORD" > truststore_creds
+
+echo "--> 6. Cleanup"
 rm -f *.csr *-cert-signed.pem *.srl server-ext.cnf client-ext.cnf
 
 echo "✅ DONE! Keys are in the 'secrets/' folder."
 echo "   - kafka.server.keystore.p12 (Mount to Broker)"
 echo "   - kafka.client.keystore.p12 (Mount to StreamKernel)"
 echo "   - kafka.truststore.p12      (Mount to BOTH)"
+echo "   - *_creds files             (Required by Confluent broker image)"
