@@ -5,11 +5,15 @@ Validates:
 - Allow/deny behavior
 - Denied batches route to DLQ
 
+Before starting the local Kafka stack, run `bash scripts/gen-certs.sh`. The
+broker configures SSL listeners for several profiles, so the generated keystore
+and credential files need to exist even when this walkthrough uses PLAINTEXT.
+
 ## 1) Confirm OPA Running
 
 ```powershell
 docker compose ps
-docker logs streamkernel-opa-1 --tail 50
+docker logs opa --tail 50
 ```
 
 ## 2) Smoke Test OPA
@@ -52,14 +56,14 @@ Run StreamKernel, then:
 
 Primary topic:
 ```powershell
-docker exec -it arena-broker kafka-console-consumer --bootstrap-server broker:29092 `
+docker exec -it broker kafka-console-consumer --bootstrap-server broker:29092 `
   --topic arena-bench-test --from-beginning --max-messages 5 `
   --property print.key=true --property key.separator=" | "
 ```
 
 DLQ (for denied):
 ```powershell
-docker exec -it arena-broker kafka-console-consumer --bootstrap-server broker:29092 `
+docker exec -it broker kafka-console-consumer --bootstrap-server broker:29092 `
   --topic streamkernel-dlq --from-beginning --max-messages 5 `
   --property print.key=true --property key.separator=" | "
 ```

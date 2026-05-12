@@ -5,6 +5,10 @@ Validates:
 - Messages land in DLQ when primary path fails/denied
 - Serializer outputs are correct
 
+Before starting the local Kafka stack, run `bash scripts/gen-certs.sh`. The
+broker configures SSL listeners for several profiles, so the generated keystore
+and credential files need to exist even when this walkthrough uses PLAINTEXT.
+
 ## 1) Configure Kafka DLQ
 
 ```properties
@@ -15,7 +19,7 @@ dlq.serializer.type=STRING
 
 Create topic:
 ```powershell
-docker exec -it arena-broker kafka-topics --bootstrap-server broker:29092 --create --if-not-exists `
+docker exec -it broker kafka-topics --bootstrap-server broker:29092 --create --if-not-exists `
   --topic streamkernel-dlq --partitions 6 --replication-factor 1
 ```
 
@@ -31,7 +35,7 @@ sink.topic=not-allowed-topic
 ## 3) Verify DLQ has messages
 
 ```powershell
-docker exec -it arena-broker kafka-console-consumer --bootstrap-server broker:29092 `
+docker exec -it broker kafka-console-consumer --bootstrap-server broker:29092 `
   --topic streamkernel-dlq --from-beginning --max-messages 5 `
   --property print.key=true --property key.separator=" | "
 ```

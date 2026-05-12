@@ -2,6 +2,10 @@
 
 Validates Schema Registry + Avro serialization.
 
+Before starting the local Kafka stack, run `bash scripts/gen-certs.sh`. The
+broker configures SSL listeners for several profiles, so the generated keystore
+and credential files need to exist even when this walkthrough uses PLAINTEXT.
+
 ## 1) Confirm Schema Registry
 
 ```powershell
@@ -12,7 +16,7 @@ curl.exe -s http://localhost:8081/subjects
 ## 2) Create topic
 
 ```powershell
-docker exec -it arena-broker kafka-topics --bootstrap-server broker:29092 --create --if-not-exists `
+docker exec -it broker kafka-topics --bootstrap-server broker:29092 --create --if-not-exists `
   --topic arena-avro-test --partitions 6 --replication-factor 1
 ```
 

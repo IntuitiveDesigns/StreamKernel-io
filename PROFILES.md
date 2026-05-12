@@ -22,6 +22,26 @@ covers Pulsar, REST, Delta Lake, Snowflake, MongoDB, and DevNull plugin paths.
 - [docs/18_benchmark_runner.md](docs/18_benchmark_runner.md)
 - [benchmark-runs/tests.csv](benchmark-runs/tests.csv)
 
+## Local Docker Prerequisite
+
+Run the local cert generator before starting Kafka-backed profiles:
+
+```bash
+bash scripts/gen-certs.sh
+```
+
+On Windows with Git Bash:
+
+```powershell
+$env:MSYS_NO_PATHCONV = "1"
+& "C:\Program Files\Git\bin\bash.exe" scripts/gen-certs.sh
+```
+
+The compose broker always configures SSL listeners, so these generated
+keystores and Confluent `*_creds` files are needed by multiple profile families:
+plain Kafka sink/source rows, mTLS rows, OIDC rows that start the shared broker,
+and Pulsar source rows that write to Kafka.
+
 ## Original Benchmark Matrix
 
 The public benchmark matrix lives at:
@@ -49,6 +69,18 @@ Additional public use cases:
 .\test-java-runner.ps1 -MatrixFile .\benchmark-runs\tests_pulsar_live.csv
 .\test-java-runner.ps1 -MatrixFile .\benchmark-runs\tests_snowflake.csv
 ```
+
+For `benchmark-runs/tests_pulsar.csv`, prefer the paired demo scripts:
+
+```powershell
+.\scripts\demo_before_pulsar_source_kafka.ps1 -ResetPulsarVolumeOnLedgerError
+.\test-java-runner.ps1 -MatrixFile .\benchmark-runs\tests_pulsar.csv
+.\scripts\demo_after_pulsar_source_kafka.ps1
+```
+
+That row is a seeded backlog burst-drain profile. It establishes how quickly
+StreamKernel drains Pulsar into Kafka through `STRING_TO_WIREEVENT`; it is not a
+full-duration sustained-throughput profile.
 
 ## Manual Smoke Test
 

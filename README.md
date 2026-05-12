@@ -107,12 +107,43 @@ Full evidence and the public/private boundary: [MLFLOW_AI_INTEGRATION.md](MLFLOW
 
 ## Reproducible Benchmark Suite
 
+### Local Docker Setup
+
+Most local benchmark rows need the `broker` service, and the compose broker always
+configures both PLAINTEXT and SSL listeners. Generate local development
+keystores before starting Kafka, even when the profile itself uses
+`localhost:9092` PLAINTEXT:
+
+```bash
+bash scripts/gen-certs.sh
+```
+
+On Windows with Git Bash, disable MSYS path conversion so OpenSSL subject names
+are not rewritten:
+
+```powershell
+$env:MSYS_NO_PATHCONV = "1"
+& "C:\Program Files\Git\bin\bash.exe" scripts/gen-certs.sh
+```
+
+The script creates `secrets/kafka.server.keystore.p12`,
+`secrets/kafka.client.keystore.p12`, `secrets/kafka.truststore.p12`, and the
+Confluent `*_creds` files. These files are ignored by git. They are required by
+Kafka-backed rows, mTLS rows, OIDC rows that still start the shared broker, and
+Pulsar profiles that write into Kafka.
+
+On Apple Silicon Macs, `docker-compose.yaml` defaults local services to
+`linux/amd64` through `STREAMKERNEL_DOCKER_PLATFORM` because several benchmark
+images are x86-first. Docker Desktop runs them under emulation. Override that
+variable only after confirming every service in your selected profile has a
+native ARM64 image.
+
 The public suite is driven by CSV matrices in `benchmark-runs/`:
 
 - `benchmark-runs/tests.csv`: primary CPU benchmark suite
 - `benchmark-runs/tests_oidc.csv`: OIDC/security-oriented suite
 - `benchmark-runs/tests_lineage.csv`: provenance/audit evidence
-- `benchmark-runs/tests_pulsar.csv`: Pulsar source portability
+- `benchmark-runs/tests_pulsar.csv`: Pulsar source portability burst drain
 - `benchmark-runs/tests_pulsar_live.csv`: live Pulsar source pressure
 - `benchmark-runs/tests_snowflake.csv`: Snowflake Snowpipe Streaming sink
 
@@ -132,7 +163,7 @@ Full instructions: [docs/18_benchmark_runner.md](docs/18_benchmark_runner.md) an
 | MongoDB insert baseline | `.\test-java-runner.ps1 -MatrixFile .\benchmark-runs\tests.csv -SingleTest streamkernel_mongodb_insert_baseline_10m` |
 | Delta/Spark local lakehouse | `.\test-java-runner.ps1 -MatrixFile .\benchmark-runs\tests.csv -SingleTest streamkernel_delta_spark_local_5m` |
 | Lineage audit headers | `.\test-java-runner.ps1 -MatrixFile .\benchmark-runs\tests_lineage.csv -SingleTest streamkernel_lineage_audit_10m` |
-| Pulsar source drain | `.\test-java-runner.ps1 -MatrixFile .\benchmark-runs\tests_pulsar.csv` |
+| Pulsar source burst drain | `.\test-java-runner.ps1 -MatrixFile .\benchmark-runs\tests_pulsar.csv` |
 | Live Pulsar source pressure | `.\test-java-runner.ps1 -MatrixFile .\benchmark-runs\tests_pulsar_live.csv` |
 | Snowflake Snowpipe Streaming | `.\test-java-runner.ps1 -MatrixFile .\benchmark-runs\tests_snowflake.csv` |
 
@@ -151,6 +182,7 @@ Published rows were run on an Intel i9-8950HK laptop with 6 cores, 12 threads, a
 | [Kafka EOS (WireEvent)](benchmark-runs/reports/kafka/StreamKernel_Story_Kafka_ExactlyOnce.pdf) | 507K ops/sec | 301M | Exactly-once | -3.5% vs ALO |
 | [mTLS + OPA (NOOP)](benchmark-runs/reports/kafka/StreamKernel_Story_mTLS_OPA_217M.pdf) | 366K ops/sec | 217M | At-least-once | TLSv1.3 plus fail-closed OPA |
 | [MongoDB Insert](benchmark-runs/reports/mongodb/StreamKernel_Story_MongoDB_Insert_95M.pdf) | 163K docs/sec | 95.5M | At-least-once | insertMany baseline |
+| [Pulsar Source Burst Drain](benchmark-runs/reports/pulsar/streamkernel_pulsar_kafka_whitepaper.pdf) | 15.6K rec/sec peak window | 253,235 | Pulsar -> Kafka | STRING_TO_WIREEVENT baseline; backlog drained in ~20s, then idle to 10-minute shutdown |
 | [AI Infrastructure Impact Brief](benchmark-runs/reports/ai/The_Hidden_Environmental_Cost_of_AI_Infrastructure.pdf) | n/a | n/a | Research brief | Environmental and infrastructure-cost context for efficient AI-adjacent pipelines |
 
 **AI enrichment baselines (May 4, 2026 — see [MLFLOW_AI_INTEGRATION.md](MLFLOW_AI_INTEGRATION.md) for full evidence):**
